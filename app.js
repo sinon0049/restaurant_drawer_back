@@ -3,9 +3,11 @@ const app = express()
 const port = 3000
 const routes = require('./routes')
 const cors = require('cors')
+const usePassport = require('./config/passport')
 
 app.use(cors())
 app.use(express.json())
+usePassport(app)
 app.use(routes)
 
 app.listen(port, () => {

@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const db = require('../../models')
 const Work = db.Work
+const passport = require('passport')
 
 router.get('/', (req, res) => {
     return Work.findAll()
