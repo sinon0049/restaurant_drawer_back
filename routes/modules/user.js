@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs')
 const db = require('../../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
+const passport = require('passport')
 
 router.post('/signup', async (req, res) => {
     try {
@@ -24,14 +25,13 @@ router.post('/signup', async (req, res) => {
             })
         })
     } catch (error) {
-        
+        console.log(error)
     }
     
 })
 
 router.post('/signin', async (req, res) => {
     try {
-        console.log(req.body)
         if(!req.body.email.trim() || !req.body.password.trim()) return res.json({ status: 'error', message: 'empty email or password' })
         const { email, password } = req.body
         const user = await User.findOne({ where: { email }, raw: true })
@@ -52,7 +52,16 @@ router.post('/signin', async (req, res) => {
     } catch (error) {
         console.log(error)
     }
-    
+})
+
+router.get('/get_current_user', passport.authenticate('token', { session: false }), (req, res) => {
+    const token = req.get('Authorization').replace('Bearer ', '')
+    jwt.verify(token, 'secret', async (err, decoded) => {
+        const decodedId = decoded.id
+        const user = await User.findByPk(decodedId, { raw: true })
+        const { id, name, email } = user
+        return res.json({ id, name, email })
+    })
 })
 
 module.exports = router
