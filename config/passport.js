@@ -15,7 +15,7 @@ module.exports = (app) => {
 
     passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload, done) => {
         try {
-            const user = await User.findByPk(jwt_payload.id)
+            const user = await User.findByPk(jwt_payload.id, { raw: true })
             if(!user) {
                 return done(null, false)
             }
