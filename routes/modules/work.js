@@ -63,8 +63,7 @@ router.post('/done/:id', passport.authenticate('token', { session: false }), asy
         const userId = req.user.id
         const work = await Work.findByPk(req.params.id)
         if(work.dataValues.userId !== userId) return res.send({ status: 'error', message: 'oops! you are not the author!'})
-        console.log(work)
-        work.update({ isDone: !work.dataValues.isDone})
+        work.update(req.body)
         res.send({ status: 'success', message: 'work done success' })
     } catch (error) {
         console.log(error)
