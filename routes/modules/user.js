@@ -8,7 +8,6 @@ const passport = require('passport')
 
 router.post('/signup', async (req, res) => {
     try {
-        console.log(req.body)
         const sameUser = await User.findOne({ where: { email: req.body.email }})
         if(sameUser) throw new Error('email already signuped')
         bcrypt.genSalt(10, function(err, salt) {
