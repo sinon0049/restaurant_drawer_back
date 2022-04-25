@@ -14,14 +14,6 @@ module.exports = (sequelize, DataTypes) => {
       // User.hasMany(models.Restaurant, {
       //   foreignKey: 'userId'
       // })
-      User.hasMany(models.Work, {
-        foreignKey: 'userId'
-      })
-      User.belongsToMany(models.Restaurant, {
-        through: models.FavoriteRestaurant,
-        foreignKey: 'userId',
-        as: 'FavoriteRestaurants'
-      })
     }
   }
   User.init({

@@ -18,12 +18,12 @@ router.post('/history', passport.authenticate('token', { session: false }), asyn
 router.get('/history', passport.authenticate('token', { session: false }), async (req, res) => {
     const userId = req.user.id
     const favorites = await Favorite.findAll({ where: { userId }, raw: true })
-    const favoritesInArray = favorites.map(f => {return f.restaurantId})
+    const favoritesInArray = favorites.map(f => {return f.placeId})
     const restaurants = await Restaurant.findAll({ where: { userId }, raw: true })
     const results = restaurants.map(r => {
         return {
             ...r, 
-            isFavorited: favoritesInArray.includes(r.id)
+            isFavorited: favoritesInArray.includes(r.placeId)
         }
     })
     return res.send({results})
@@ -41,14 +41,12 @@ router.delete('/history/:id', passport.authenticate('token', { session: false })
 router.post('/history/togglefavorite/:id', passport.authenticate('token', { session: false }), async (req, res) => {
     try {
         const userId = req.user.id
-        const restaurantId = Number(req.params.id)
-        const { isFavorited } = req.body
-        if(isFavorited === true) {
-            const newData = { restaurantId, userId }
+        const newData = { ...req.body, userId }
+        const favorite = await Favorite.findOne({ where: { userId, placeId: newData.placeId }})
+        if(!favorite) {
             await Favorite.create(newData)
             return res.send({ status: 'success', message: 'create favorite success'})
         }
-        const favorite = await Favorite.findOne({ where: { userId, restaurantId }})
         await favorite.destroy()
         return res.send({ status: 'success', message: 'delete favorite success'})
     } catch (error) {

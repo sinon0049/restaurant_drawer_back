@@ -11,18 +11,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Restaurant.belongsToMany(models.User, {
-        through: models.FavoriteRestaurant,
-        foreignKey: 'restaurantId',
-        as: 'FavoriteRestaurants'
-      })
     }
   }
   Restaurant.init({
     name: DataTypes.STRING,
     address: DataTypes.STRING,
     userId: DataTypes.INTEGER,
-    placeId: DataTypes.STRING
+    placeId: DataTypes.STRING,
+    phone: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Restaurant',
