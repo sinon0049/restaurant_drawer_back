@@ -12,6 +12,10 @@ router.post('/history', passport.authenticate('token', { session: false }), asyn
     if(!req.body) return res.send({status: 'error', message: 'no data'})
     const newRestaurant = { ...req.body, userId }
     await Restaurant.create(newRestaurant)
+    const favorite = await Favorite.findOne({ where: { placeId: req.body.placeId }})
+    if(favorite){
+        favorite.update({ lastVisit: new Date()})       
+    }
     return res.send({status: 'success', message: 'data send success'})
 })
 
@@ -49,6 +53,16 @@ router.post('/history/togglefavorite/:id', passport.authenticate('token', { sess
         }
         await favorite.destroy()
         return res.send({ status: 'success', message: 'delete favorite success'})
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+router.get('/favorite', passport.authenticate('token', { session: false }), async (req, res) => {
+    try {
+        const userId = req.user.id
+        const results = await Favorite.findAll({ where: { userId }, raw: true })
+        res.send(results)
     } catch (error) {
         console.log(error)
     }
