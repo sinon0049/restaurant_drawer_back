@@ -23,7 +23,7 @@ router.get('/history', passport.authenticate('token', { session: false }), async
     const userId = req.user.id
     const favorites = await Favorite.findAll({ where: { userId }, raw: true })
     const favoritesInArray = favorites.map(f => {return f.placeId})
-    const restaurants = await Restaurant.findAll({ where: { userId }, raw: true, order: [['name', 'DESC']] })
+    const restaurants = await Restaurant.findAll({ where: { userId }, raw: true, order: [['createdAt', 'DESC']] })
     const results = restaurants.map(r => {
         return {
             ...r, 

@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken')
 router.get('/', passport.authenticate('token', { session: false }), async (req, res) => {
     try {
         const userId = req.user.id
-        const works = await Work.findAll({ where: { userId }})
+        const works = await Work.findAll({ where: { userId }, order: [['isDone', 'ASC'], ['dueDate', 'ASC']]})
         return res.send({ works })
     } catch (error) {
         console.log(error)
