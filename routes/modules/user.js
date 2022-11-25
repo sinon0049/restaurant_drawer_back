@@ -5,11 +5,15 @@ const db = require('../../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
 const passport = require('passport')
+const { OAuth2Client } = require('google-auth-library')
 
 router.post('/signup', async (req, res) => {
     try {
         const sameUser = await User.findOne({ where: { email: req.body.email }})
-        if(sameUser) throw new Error('email already signuped')
+        if(sameUser) return res.json({
+            status: 'error',
+            message: 'email already exists'
+        })
         bcrypt.genSalt(10, function(err, salt) {
             bcrypt.hash(req.body.password, salt, function(err, hash) {
                 User.create({
@@ -17,7 +21,7 @@ router.post('/signup', async (req, res) => {
                     password: hash,
                     name: req.body.name
                 })
-                res.send({
+                res.json({
                     status: 'success',
                     message: 'signup success'
                 })
@@ -26,28 +30,44 @@ router.post('/signup', async (req, res) => {
     } catch (error) {
         console.log(error)
     }
-    
 })
 
-router.post('/signin', async (req, res) => {
+router.post('/signin', passport.authenticate('local'), async (req, res) => {
     try {
-        if(!req.body.email.trim() || !req.body.password.trim()) return res.json({ status: 'error', message: 'empty email or password' })
-        const { email, password } = req.body
-        const user = await User.findOne({ where: { email }, raw: true })
-        if(!user) return res.status(401).json({ status: 'error', message: 'incorrect email or password' })
-        if(!bcrypt.compareSync(password, user.password)) return res.status(401).json({ status: 'error', message: 'incorrect email or password' })
-        const payLoad = { id: user.id }
-        const token = jwt.sign(payLoad, 'secret')
+        const payLoad = { id: req.user.id }
+        const token = jwt.sign(payLoad, process.env.SECRET)
         return res.json({
             status: 'success',
             message: 'signin success',
             token,
             user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
+                id: req.user.id,
+                email: req.user.email,
+                name: req.user.name
             }
         })
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+router.post('/fbsignin', async (req, res) => {
+    try {
+        console.log(req.body.facebookId)
+        return res.json({status: "success"})
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+router.post('/googlesignin', async (req, res) => {
+    try {
+        const url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        const oauth2Client = new OAuth2Client()
+        oauth2Client.setCredentials({ access_token: req.body.access_token })
+        const googleId = (await oauth2Client.request({url})).data.sub
+        console.log(googleId)
+        return res.json({status: "success"})
     } catch (error) {
         console.log(error)
     }

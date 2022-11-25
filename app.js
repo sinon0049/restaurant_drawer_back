@@ -4,6 +4,7 @@ const port = 3000
 const routes = require('./routes')
 const cors = require('cors')
 const usePassport = require('./config/passport')
+require('dotenv').config()
 
 app.use(cors())
 app.use(express.json())
