@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const db = require('../../models')
 const Restaurant = db.Restaurant
-const Favorite = db.FavoriteRestaurant
 const jwt = require('jsonwebtoken')
 const passport = require('passport')
 const user = require('../../models/user')
@@ -40,32 +39,6 @@ router.delete('/history/:id', passport.authenticate('token', { session: false })
     if(!Restaurant) return res.send({status: 'error', message: 'no target data'})
     restaurant.destroy()
     return  res.send({status: 'success', message: 'restaurant delete success'})
-})
-
-router.post('/history/togglefavorite/:id', passport.authenticate('token', { session: false }), async (req, res) => {
-    try {
-        const userId = req.user.id
-        const newData = { ...req.body, userId }
-        const favorite = await Favorite.findOne({ where: { userId, placeId: newData.placeId }})
-        if(!favorite) {
-            await Favorite.create(newData)
-            return res.send({ status: 'success', message: 'create favorite success'})
-        }
-        await favorite.destroy()
-        return res.send({ status: 'success', message: 'delete favorite success'})
-    } catch (error) {
-        console.log(error)
-    }
-})
-
-router.get('/favorite', passport.authenticate('token', { session: false }), async (req, res) => {
-    try {
-        const userId = req.user.id
-        const results = await Favorite.findAll({ where: { userId }, raw: true })
-        res.send(results)
-    } catch (error) {
-        console.log(error)
-    }
 })
 
 module.exports = router
