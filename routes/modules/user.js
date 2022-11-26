@@ -51,10 +51,29 @@ router.post('/signin', passport.authenticate('local'), async (req, res) => {
     }
 })
 
-router.post('/fbsignin', async (req, res) => {
+router.post('/facebooksignin', async (req, res) => {
     try {
-        console.log(req.body.facebookId)
-        return res.json({status: "success"})
+        const facebookId = req.body.facebookId
+        const user = await User.findOne({ where: { facebookId }})
+        if(user) {
+            const token = jwt.sign({ id: user.id }, process.env.SECRET)
+            return res.json({
+                status: 'success',
+                message: 'signin success',
+                token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name
+                }
+            })
+        } else {
+            return res.json({
+                status: "error",
+                message: "please sign up",
+                facebookId
+            })
+        }
     } catch (error) {
         console.log(error)
     }
@@ -66,11 +85,52 @@ router.post('/googlesignin', async (req, res) => {
         const oauth2Client = new OAuth2Client()
         oauth2Client.setCredentials({ access_token: req.body.access_token })
         const googleId = (await oauth2Client.request({url})).data.sub
-        console.log(googleId)
-        return res.json({status: "success"})
+        const user = await User.findOne({ where: { googleId }})
+        if(user) {
+            const token = jwt.sign({ id: user.id }, process.env.SECRET)
+            return res.json({
+                status: 'success',
+                message: 'signin success',
+                token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name
+                }
+            })
+        } else {
+            return res.json({
+                status: "error",
+                message: "please sign up",
+                googleId
+            })
+        }
     } catch (error) {
         console.log(error)
     }
+})
+
+router.post('/oauthsignup', async (req, res) => {
+    const sameUser = await User.findOne({
+        where: {
+            email: req.body.email
+        }
+    })
+    if(sameUser) return res.json({
+        status: "error",
+        message: "Please sign in first and connect your account."
+    })
+    const randomPwd = Math.random().toString(36).slice(-8)
+    const salt = await bcrypt.genSalt(10)
+    const password = await bcrypt.hash(randomPwd, salt)
+    await User.create({
+        ...req.body,
+        password
+    })
+    return res.json({
+        status: "success",
+        ...req.body
+    })
 })
 
 router.get('/get_current_user', passport.authenticate('token', { session: false }), (req, res) => {
