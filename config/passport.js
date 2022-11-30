@@ -18,6 +18,7 @@ module.exports = (app) => {
     passport.use(new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
         const user = await User.findOne({where: {email}, raw: true})
         if(!user) return done(null, false)
+        if(!user.password) return done(null, false)
         if(!bcrypt.compareSync(password, user.password)) return done(null, false)
         return done(null, user)
     }))
