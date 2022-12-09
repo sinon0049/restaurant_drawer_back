@@ -57,7 +57,7 @@ router.post('/signin', passport.authenticate('local'), async (req, res) => {
                 name: req.user.name,
                 facebookId: req.user.facebookId,
                 googleId: req.user.googleId,
-                isPwdSet: !!req.user.password ? true : false,
+                isPwdSet: req.user.password ? true : false,
             }
         })
     } catch (error) {
