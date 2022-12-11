@@ -23,5 +23,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-#GAE env file
+#GAE env file and ignore file
 app.yaml
+.gcloudignore
