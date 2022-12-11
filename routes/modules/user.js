@@ -172,7 +172,7 @@ router.put('/profile', passport.authenticate('token'), async (req, res) => {
             attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
         })
         await user.update(req.body)
-        return res.json({ status: "success", message: "profile updated successfully", user })
+        return res.json({ status: "success", message: "Profile updated successfully.", user })
     } catch (error) {
         console.log(error)
     }
@@ -181,14 +181,14 @@ router.put('/profile', passport.authenticate('token'), async (req, res) => {
 router.put('/password', passport.authenticate('token'), async (req, res) => {
     try {
         const payLoad = { ...req.body }
-        if(!payLoad.currentPwd.trim() && req.user.password) return res.json({ status: 'error', message: 'please type your password' })
-        if(req.user.password && !bcrypt.compareSync(payLoad.currentPwd, req.user.password)) return res.json({ status: 'error', message: 'incorrect password' })
-        if(payLoad.newPwd !== payLoad.confirmPwd) return res.json({ status: 'error', message: 'please confirm your password' })
+        if(!payLoad.currentPwd.trim() && req.user.password) return res.json({ status: 'error', message: 'Please type your password.' })
+        if(req.user.password && !bcrypt.compareSync(payLoad.currentPwd, req.user.password)) return res.json({ status: 'error', message: 'Incorrect password.' })
+        if(payLoad.newPwd !== payLoad.confirmPwd) return res.json({ status: 'error', message: 'Please confirm your password.' })
         const user = await User.findByPk(req.user.id)
         const salt = await bcrypt.genSalt(10)
         const hash = await bcrypt.hash(payLoad.newPwd, salt)
         await user.update({ password: hash })
-        return res.json({status: 'success', message: 'password updated successfully'})
+        return res.json({status: 'success', message: 'Password updated successfully.'})
     } catch (error) {
         console.log(error)
     }
