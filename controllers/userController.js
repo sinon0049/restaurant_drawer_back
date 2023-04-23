@@ -143,7 +143,10 @@ module.exports = {
     getCurrentUser: async (req, res) => {
         try {
             const userId = req.user.id
-            const user = await User.findByPk(userId, { raw: true })
+            const user = await User.findByPk(userId, { 
+                raw: true,
+                attributes: ['id', 'email', 'name', 'facebookId', 'googleId', 'password']
+            })
             return res.json({
                 ...user,
                 isPwdSet: user.password ? true : false
