@@ -3,13 +3,18 @@ const db = require('../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
 const { OAuth2Client } = require('google-auth-library')
+const oauth2Client = new OAuth2Client()
+const googleApiUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
-async function getGoogleId (access_token) {
+async function getGoogleData (access_token) {
     try {
-        const url = 'https://www.googleapis.com/oauth2/v3/userinfo'
-        const oauth2Client = new OAuth2Client()
         oauth2Client.setCredentials({ access_token })
-        return (await oauth2Client.request({url})).data.sub
+        const { data } = await oauth2Client.request({ url: googleApiUrl })
+        return {
+            googleId: data.sub,
+            name: data.name,
+            email: data.email
+        }
     } catch (error) {
         console.log(error)
     }
@@ -64,82 +69,69 @@ module.exports = {
     facebookSignIn: async (req, res) => {
         try {
             const facebookId = req.body.facebookId
-            const user = await User.findOne({ where: { facebookId }})
-            if(user) {
-                const token = jwt.sign({ id: user.id }, process.env.SECRET)
-                return res.json({
-                    status: 'success',
-                    message: 'signin success',
-                    token,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        name: user.name,
-                        isPwdSet: user.dataValues.password ? true : false
-                    }
-                })
-            } else {
-                return res.json({
-                    status: "error",
-                    message: "please sign up",
-                    facebookId
-                })
-            }
+            let user = await User.findOne({ where: { facebookId }})
+            if(!user) user = await User.create(req.body)
+            const token = jwt.sign({ id: user.id }, process.env.SECRET)
+            return res.json({
+                status: 'success',
+                message: 'signin success',
+                token,
+                user: {
+                    id: user.dataValues.id,
+                    email: user.dataValues.email,
+                    name: user.dataValues.name,
+                    isPwdSet: user.dataValues.password ? true : false
+                }
+            })
         } catch (error) {
             console.log(error)
         }
     },
     googleSignIn: async (req, res) => {
         try {
-            const googleId = await getGoogleId(req.body.access_token)
-            const user = await User.findOne({ where: { googleId }})
-            if(user) {
-                const token = jwt.sign({ id: user.id }, process.env.SECRET)
-                return res.json({
-                    status: 'success',
-                    message: 'signin success',
-                    token,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        name: user.name,
-                        isPwdSet: user.dataValues.password ? true : false
-                    }
-                })
-            } else {
-                return res.json({
-                    status: "error",
-                    message: "please sign up",
-                    googleId
-                })
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    },
-    OAuthSignUp: async (req, res) => {
-        try {
-            const sameUser = await User.findOne({
-                where: {
-                    email: req.body.email
+            const googleData = await getGoogleData(req.body.access_token)
+            const { googleId } = googleData
+            let user = await User.findOne({ where: { googleId }})
+            if(!user) user = await User.create(googleData)
+            const token = jwt.sign({ id: user.id }, process.env.SECRET)
+            return res.json({
+                status: 'success',
+                message: 'signin success',
+                token,
+                user: {
+                    id: user.dataValues.id,
+                    email: user.dataValues.email,
+                    name: user.dataValues.name,
+                    isPwdSet: user.dataValues.password ? true : false
                 }
             })
-            if(sameUser) return res.json({
-                status: "error",
-                message: "Please sign in first and connect your account."
-            })
-            await User.create({
-                ...req.body,
-                password: ''
-            })
-            return res.json({
-                status: "success",
-                ...req.body
-            })
         } catch (error) {
             console.log(error)
         }
     },
+    // OAuthSignUp: async (req, res) => {
+    //     try {
+    //         const sameUser = await User.findOne({
+    //             where: {
+    //                 email: req.body.email
+    //             }
+    //         })
+    //         if(sameUser) return res.json({
+    //             status: "error",
+    //             message: "Please sign in first and connect your account."
+    //         })
+    //         await User.create({
+    //             ...req.body,
+    //             password: ''
+    //         })
+    //         return res.json({
+    //             status: "success",
+    //             ...req.body
+    //         })
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // },
     getCurrentUser: async (req, res) => {
         try {
             const userId = req.user.id
@@ -158,7 +150,7 @@ module.exports = {
     updateProfile: async (req, res) => {
         try {
             if(req.body.access_token) {
-                const googleId = await getGoogleId(req.body.access_token)
+                const { googleId } = await getGoogleData(req.body.access_token)
                 req.body.googleId = googleId
                 delete req.body.access_token
             }
@@ -183,6 +175,34 @@ module.exports = {
             const hash = await bcrypt.hash(payLoad.newPwd, salt)
             await user.update({ password: hash })
             return res.json({status: 'success', message: 'Password updated successfully.'})
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    connectFacebookAccount: async (req, res) => {
+        try {
+            const { facebookId } = req.body
+            let user = await User.findOne({ where: { facebookId } })
+            if(user !== null) return res.json({status: 'error', message: 'Account has been already registered.'})
+            user = await User.findByPk(req.user.id, { 
+                attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
+            })
+            await user.update({ facebookId })
+            return res.json({status: 'success', message: 'Account connected successfully.', user})
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    connectGoogleAccount: async (req, res) => {
+        try {
+            const { googleId } = await getGoogleData(req.body.access_token)
+            let user = await User.findOne({ where: { googleId } })
+            if(user !== null) return res.json({status: 'error', message: 'Account has been already registered.'})
+            user = await User.findByPk(req.user.id, { 
+                attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
+            })
+            await user.update({ googleId })
+            return res.json({status: 'success', message: 'Account connected successfully.', user})
         } catch (error) {
             console.log(error)
         }
