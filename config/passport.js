@@ -1,9 +1,10 @@
-const passport = require('passport')
-const LocalStrategy = require('passport-local').Strategy
-const JwtStrategy = require('passport-jwt').Strategy
-const ExtractJwt = require('passport-jwt').ExtractJwt
+import passport from "passport"
+import { Strategy as LocalStrategy } from "passport-local"
+import { Strategy as JwtStrategy } from "passport-jwt"
+import { ExtractJwt } from "passport-jwt"
+import bcrypt from "bcryptjs"
+
 const db = require('../models')
-const bcrypt = require('bcryptjs')
 const User = db.User
 require('dotenv').config()
 
@@ -12,7 +13,7 @@ let jwtOptions = {
     secretOrKey: process.env.SECRET,
 }
 
-module.exports = (app) => {
+export const usePassport = (app) => {
     app.use(passport.initialize())
 
     passport.use(new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
