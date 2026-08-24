@@ -3,6 +3,7 @@ const db = require('../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
 const { OAuth2Client } = require('google-auth-library')
+import type { Request, Response } from "express"
 
 async function getGoogleId (access_token) {
     try {
@@ -16,7 +17,7 @@ async function getGoogleId (access_token) {
 }
 
 module.exports = {
-    signUp: async (req, res) => {
+    signUp: async (req: Request, res: Response) => {
         try {
             const sameUser = await User.findOne({ where: { email: req.body.email }})
             if(sameUser) return res.json({
@@ -40,7 +41,7 @@ module.exports = {
             console.log(error)
         }
     },
-    signIn: async (req, res) => {
+    signIn: async (req: Request, res: Response) => {
         try {
             const payLoad = { id: req.user.id }
             const token = jwt.sign(payLoad, process.env.SECRET)
@@ -61,7 +62,7 @@ module.exports = {
             console.log(error)
         }
     },
-    facebookSignIn: async (req, res) => {
+    facebookSignIn: async (req: Request, res: Response) => {
         try {
             const facebookId = req.body.facebookId
             const user = await User.findOne({ where: { facebookId }})
@@ -89,7 +90,7 @@ module.exports = {
             console.log(error)
         }
     },
-    googleSignIn: async (req, res) => {
+    googleSignIn: async (req: Request, res: Response) => {
         try {
             const googleId = await getGoogleId(req.body.access_token)
             const user = await User.findOne({ where: { googleId }})
@@ -117,7 +118,7 @@ module.exports = {
             console.log(error)
         }
     },
-    OAuthSignUp: async (req, res) => {
+    OAuthSignUp: async (req: Request, res: Response) => {
         try {
             const sameUser = await User.findOne({
                 where: {
@@ -140,7 +141,7 @@ module.exports = {
             console.log(error)
         }
     },
-    getCurrentUser: async (req, res) => {
+    getCurrentUser: async (req: Request, res: Response) => {
         try {
             const userId = req.user.id
             const user = await User.findByPk(userId, { 
@@ -155,7 +156,7 @@ module.exports = {
             console.log(error)
         }
     },
-    updateProfile: async (req, res) => {
+    updateProfile: async (req: Request, res: Response) => {
         try {
             if(req.body.access_token) {
                 const googleId = await getGoogleId(req.body.access_token)
@@ -172,7 +173,7 @@ module.exports = {
             console.log(error)
         }
     },
-    updatePassword: async (req, res) => {
+    updatePassword: async (req: Request, res: Response) => {
         try {
             const payLoad = { ...req.body }
             if(!payLoad.currentPwd.trim() && req.user.password) return res.json({ status: 'error', message: 'Please type your password.' })

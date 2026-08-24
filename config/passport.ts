@@ -5,7 +5,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt
 const db = require('../models')
 const bcrypt = require('bcryptjs')
 const User = db.User
-require('dotenv').config()
 
 let jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -15,7 +14,7 @@ let jwtOptions = {
 module.exports = (app) => {
     app.use(passport.initialize())
 
-    passport.use(new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
+    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done) => {
         const user = await User.findOne({where: {email}, raw: true})
         if(!user) return done(null, false)
         if(!user.password) return done(null, false)

@@ -1,8 +1,10 @@
 const db = require('../models')
 const Restaurant = db.Restaurant
 
+import type { Request, Response } from "express"
+
 module.exports = {
-    createRecord: async (req, res) => {
+    createRecord: async (req: Request, res: Response) => {
         try {
             const payLoad = {
                 userId: req.user.id,
@@ -14,7 +16,7 @@ module.exports = {
             console.log(error)
         }
     },
-    getRecord: async (req, res) => {
+    getRecord: async (req: Request, res: Response) => {
         try {
             const userId = req.user.id
             const restaurants = await Restaurant.findAll({
@@ -29,7 +31,7 @@ module.exports = {
             console.log(error)
         }
     },
-    deleteRecord: async (req, res) => {
+    deleteRecord: async (req: Request, res: Response) => {
         try {
             const { restaurantId } = req.params
             const restaurant = await Restaurant.findByPk(restaurantId)
