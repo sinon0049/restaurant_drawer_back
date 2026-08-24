@@ -3,10 +3,12 @@ const db = require('../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
 const { OAuth2Client } = require('google-auth-library')
+
 import type { Request, Response } from "express"
 
-async function getGoogleId (access_token) {
+async function getGoogleId (access_token: string) {
     try {
+        console.log(access_token)
         const url = 'https://www.googleapis.com/oauth2/v3/userinfo'
         const oauth2Client = new OAuth2Client()
         oauth2Client.setCredentials({ access_token })
@@ -24,8 +26,8 @@ module.exports = {
                 status: 'error',
                 message: 'email already exists'
             })
-            bcrypt.genSalt(10, function(err, salt) {
-                bcrypt.hash(req.body.password, salt, function(err, hash) {
+            bcrypt.genSalt(10, function(err: any, salt: any) {
+                bcrypt.hash(req.body.password, salt, function(err: any, hash: any) {
                     User.create({
                         email: req.body.email,
                         password: hash,
@@ -43,6 +45,7 @@ module.exports = {
     },
     signIn: async (req: Request, res: Response) => {
         try {
+            const user = req.user
             const payLoad = { id: req.user.id }
             const token = jwt.sign(payLoad, process.env.SECRET)
             return res.json({
@@ -50,12 +53,12 @@ module.exports = {
                 message: 'signin success',
                 token,
                 user: {
-                    id: req.user.id,
-                    email: req.user.email,
-                    name: req.user.name,
-                    facebookId: req.user.facebookId,
-                    googleId: req.user.googleId,
-                    isPwdSet: req.user.password ? true : false,
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    facebookId: user.facebookId,
+                    googleId: user.googleId,
+                    isPwdSet: user.password ? true : false,
                 }
             })
         } catch (error) {

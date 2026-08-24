@@ -1,8 +1,10 @@
-import { User } from './user';
-import type AuthUser = require('./user');
+import type { AuthUser } from './user'
 
-declare namespace Express {
-  interface Request {
-    user: AuthUser;
+// let ts recognize req.user as AuthUser
+declare global {
+  namespace Express {
+    interface User extends AuthUser {}
   }
 }
+
+export {}
