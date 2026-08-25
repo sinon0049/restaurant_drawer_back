@@ -8,7 +8,7 @@ const googleApiUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 import type { Request, Response } from "express"
 
-async function getGoogleData (access_token: string) {
+async function getGoogleData (access_token: string): Promise<any> {
     try {
         oauth2Client.setCredentials({ access_token })
         const { data } = await oauth2Client.request({ url: googleApiUrl })
@@ -112,29 +112,6 @@ module.exports = {
             console.log(error)
         }
     },
-    // OAuthSignUp: async (req, res) => {
-    //     try {
-    //         const sameUser = await User.findOne({
-    //             where: {
-    //                 email: req.body.email
-    //             }
-    //         })
-    //         if(sameUser) return res.json({
-    //             status: "error",
-    //             message: "Please sign in first and connect your account."
-    //         })
-    //         await User.create({
-    //             ...req.body,
-    //             password: ''
-    //         })
-    //         return res.json({
-    //             status: "success",
-    //             ...req.body
-    //         })
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // },
     getCurrentUser: async (req: Request, res: Response) => {
         try {
             const currentUser = req.user!
