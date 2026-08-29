@@ -6,11 +6,17 @@ const userController = require('../../controllers/userController')
 router.post('/signup', userController.signUp)
 router.post('/signin', passport.authenticate('local'), userController.signIn)
 router.post('/facebooksignin', userController.facebookSignIn)
-router.post('/googlesignin', userController.googleSignIn)
 router.get('/current_user', passport.authenticate('token'), userController.getCurrentUser)
 router.put('/profile', passport.authenticate('token'), userController.updateProfile)
 router.put('/password', passport.authenticate('token'), userController.updatePassword)
 router.put('/fbaccount', passport.authenticate('token'), userController.connectFacebookAccount)
 router.put('/gaccount', passport.authenticate('token'), userController.connectGoogleAccount)
+
+
+router.get('/google/signin', passport.authenticate('google-signin', { scope: ['profile', 'email'], prompt: 'select_account' }))
+router.get('/google/signin/callback', passport.authenticate('google'), userController.googleSigninCallback)
+
+router.get('/google/connect', passport.authenticate('google-connect', { scope: ['profile'], prompt: 'select_account' }))
+router.get('/google/connect/callback', passport.authenticate('google-connect'), userController.googleConnectCallback)
 
 module.exports = router

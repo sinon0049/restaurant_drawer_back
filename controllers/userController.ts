@@ -247,5 +247,29 @@ module.exports = {
                 message: 'Internal server error.'
             })
         }
+    },
+    googleSigninCallback: async (req: Request, res: Response) => {
+        try {
+            const payLoad = { id: req.user!.id }
+            const token = jwt.sign(payLoad, process.env.SECRET)
+            return res.redirect(`https://localhost:5173/oauth/callback?token=${token}`)
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
+    },
+    googleConnectCallback: async (req: Request, res: Response) => {
+        try {
+            const payLoad = { id: req.user!.id }
+            const token = jwt.sign(payLoad, process.env.SECRET)
+            return res.redirect(`https://localhost:5173/oauth/callback?token=${token}`)
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
     }
 }
