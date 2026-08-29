@@ -4,8 +4,9 @@ const port = process.env.PORT || 3000
 const routes = require('./routes')
 const cors = require('cors')
 const usePassport = require('./config/passport')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
-const whiteList = ['https://todorest-715325.web.app', 'https://todorest-715325.firebaseapp.com', 'https://localhost:5173']
+const whiteList = ['https://todorest-715325.web.app', 'https://todorest-715325.firebaseapp.com', 'http://localhost:5173']
 
 import type { CorsOptions } from "cors"
 
@@ -16,9 +17,11 @@ const corsOption: CorsOptions = {
         } else {
           callback(new Error(`Origin ${origin} is not allowed by CORS policy`))
         }
-    }
+    },
+    credentials: true
 }
 
+app.use(cookieParser())
 app.use(cors(corsOption))
 app.use(express.json())
 usePassport(app)

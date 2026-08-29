@@ -9,7 +9,9 @@ const User = db.User
 require('dotenv').config()
 
 let jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    jwtFromRequest: (req) => {
+        return req.cookies.token || null
+     },
     secretOrKey: process.env.SECRET,
 }
 

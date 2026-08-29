@@ -8,6 +8,11 @@ const googleApiUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 import type { Request, Response } from "express"
 
+const optCookie = {
+    httpOnly: true,
+    sameSite: 'Lax',
+}
+
 async function getGoogleData (access_token: string): Promise<any> {
     try {
         oauth2Client.setCredentials({ access_token })
@@ -61,9 +66,11 @@ module.exports = {
     },
     signIn: async (req: Request, res: Response) => {
         try {
+            console.log(req.body)
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
             const token = jwt.sign(payLoad, process.env.SECRET)
+            res.cookie('token', token, optCookie)
             return res.status(200).json({
                 status: 'success',
                 message: 'Sign in successfully',
@@ -252,7 +259,7 @@ module.exports = {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET)
-            return res.redirect(`https://localhost:5173/oauth/callback?token=${token}`)
+            return res.redirect(`http://localhost:5173/oauth/callback?token=${token}`)
         } catch (error) {
             res.status(500).json({
                 status: 'error',
