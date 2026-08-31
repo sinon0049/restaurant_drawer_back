@@ -39,7 +39,7 @@ module.exports = (app) => {
     passport.use('google-signin', new GoogleStrategy({
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: "http://localhost:3000/users/google/callback"
+            callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
         },
         async (accessToken: string, refreshToken: string, profile: any, done) => {
             const user = await User.findOrCreate({
@@ -59,20 +59,10 @@ module.exports = (app) => {
     passport.use('google-connect', new GoogleStrategy({
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: "http://localhost:3000/users/google/connect/callback"
+            callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
         },
-        async (accessToken: string, refreshToken: string, profile: any, done) => {
-            const user = await User.findOrCreate({
-                where: {
-                    googleId: profile.id
-                },
-                defaults: {
-                    name: profile.displayName,
-                    email: profile.emails[0].value
-                }
-            })
-
-            return done(null, user[0].dataValues)
+        (accessToken: string, refreshToken: string, profile: any, done) => {
+            return done(null, { id: profile.id })
         }
     ))
 

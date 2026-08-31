@@ -87,6 +87,20 @@ module.exports = {
             })
         }
     },
+    signOut: async (req: Request, res: Response) => {
+        try {
+            res.clearCookie('token')
+            res.status(200).json({
+                status: 'success',
+                message: 'Sign out successfully'
+            })
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
+    },
     facebookSignIn: async (req: Request, res: Response) => {
         try {
             const facebookId = req.body.facebookId
@@ -259,7 +273,8 @@ module.exports = {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET)
-            return res.redirect(`http://localhost:5173/oauth/callback?token=${token}`)
+            res.cookie('token', token)
+            return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
             res.status(500).json({
                 status: 'error',
@@ -269,9 +284,19 @@ module.exports = {
     },
     googleConnectCallback: async (req: Request, res: Response) => {
         try {
-            const payLoad = { id: req.user!.id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
-            return res.redirect(`https://localhost:5173/oauth/callback?token=${token}`)
+            const googleId = req.user?.id
+            const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
+            await User.update(
+                {
+                    googleId
+                },
+                {
+                    where: {
+                        id: userId
+                    }
+                }
+            )
+            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback`)
         } catch (error) {
             res.status(500).json({
                 status: 'error',

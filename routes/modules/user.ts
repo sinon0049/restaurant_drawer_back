@@ -14,9 +14,11 @@ router.put('/gaccount', passport.authenticate('token'), userController.connectGo
 
 
 router.get('/google/signin', passport.authenticate('google-signin', { scope: ['profile', 'email'], prompt: 'select_account' }))
-router.get('/google/signin/callback', passport.authenticate('google'), userController.googleSigninCallback)
+router.get('/google/signin/callback', passport.authenticate('google-signin'), userController.googleSigninCallback)
 
 router.get('/google/connect', passport.authenticate('google-connect', { scope: ['profile'], prompt: 'select_account' }))
 router.get('/google/connect/callback', passport.authenticate('google-connect'), userController.googleConnectCallback)
+
+router.post('/signout', userController.signOut)
 
 module.exports = router
