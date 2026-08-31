@@ -1,6 +1,7 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const JwtStrategy = require('passport-jwt').Strategy
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const db = require('../models')
 const bcrypt = require('bcryptjs')
@@ -8,7 +9,9 @@ const User = db.User
 require('dotenv').config()
 
 let jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    jwtFromRequest: (req) => {
+        return req.cookies.token || null
+     },
     secretOrKey: process.env.SECRET,
 }
 
@@ -32,6 +35,36 @@ module.exports = (app) => {
             console.log(error)
         }
     }))
+
+    passport.use('google-signin', new GoogleStrategy({
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
+        },
+        async (accessToken: string, refreshToken: string, profile: any, done) => {
+            const user = await User.findOrCreate({
+                where: {
+                    googleId: profile.id
+                },
+                defaults: {
+                    name: profile.displayName,
+                    email: profile.emails[0].value
+                }
+            })
+
+            return done(null, user[0].dataValues)
+        }
+    ))
+
+    passport.use('google-connect', new GoogleStrategy({
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
+        },
+        (accessToken: string, refreshToken: string, profile: any, done) => {
+            return done(null, { id: profile.id })
+        }
+    ))
 
     passport.serializeUser(function(user, done) {
         return done(null, user.id)
