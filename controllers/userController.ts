@@ -8,7 +8,7 @@ const googleApiUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 import type { Request, Response } from "express"
 
-const optCookie = {
+const optCookie: any = {
     httpOnly: true,
     sameSite: 'Lax',
 }
@@ -66,7 +66,6 @@ module.exports = {
     },
     signIn: async (req: Request, res: Response) => {
         try {
-            console.log(req.body)
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
             const token = jwt.sign(payLoad, process.env.SECRET)
@@ -303,5 +302,40 @@ module.exports = {
                 message: 'Internal server error.'
             })
         }
-    }
+    },
+    facebookSigninCallback: async (req: Request, res: Response) => {
+        try {
+            const payLoad = { id: req.user!.id }
+            const token = jwt.sign(payLoad, process.env.SECRET)
+            res.cookie('token', token)
+            return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
+    },
+    facebookConnectCallback: async (req: Request, res: Response) => {
+        try {
+            const facebookId = req.user!.id
+            const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
+            await User.update(
+                {
+                    facebookId
+                },
+                {
+                    where: {
+                        id: userId
+                    }
+                }
+            )
+            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback`)
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
+    },
 }

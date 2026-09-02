@@ -2,6 +2,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const JwtStrategy = require('passport-jwt').Strategy
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const db = require('../models')
 const bcrypt = require('bcryptjs')
@@ -18,7 +19,7 @@ let jwtOptions = {
 module.exports = (app) => {
     app.use(passport.initialize())
 
-    passport.use(new LocalStrategy({usernameField: "email"}, async (email, password, done) => {
+    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done) => {
         const user = await User.findOne({where: {email}, raw: true})
         if(!user) return done(null, false)
         if(!user.password) return done(null, false)
@@ -60,6 +61,37 @@ module.exports = (app) => {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
+        },
+        (accessToken: string, refreshToken: string, profile: any, done) => {
+            return done(null, { id: profile.id })
+        }
+    ))
+
+    passport.use('facebook-signin', new FacebookStrategy({
+            clientID: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            callbackURL: `${process.env.BACKEND_URL}/users/facebook/signin/callback`,
+            profileFields: ["id", "displayName", "email"]
+        },
+        async (accessToken: string, refreshToken: string, profile: any, done) => {
+            const user = await User.findOrCreate({
+                where: {
+                    facebookId: profile.id
+                },
+                defaults: {
+                    name: profile.displayName,
+                    email: profile.emails[0].value
+                }
+            })
+
+            return done(null, user[0].dataValues)
+        }
+    ))
+
+    passport.use('facebook-connect', new FacebookStrategy({
+            clientID: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            callbackURL: `${process.env.BACKEND_URL}/users/facebook/connect/callback`,
         },
         (accessToken: string, refreshToken: string, profile: any, done) => {
             return done(null, { id: profile.id })
