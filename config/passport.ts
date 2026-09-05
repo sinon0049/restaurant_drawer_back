@@ -3,7 +3,6 @@ const LocalStrategy = require('passport-local').Strategy
 const JwtStrategy = require('passport-jwt').Strategy
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt
 const db = require('../models')
 const bcrypt = require('bcryptjs')
 const User = db.User
@@ -63,7 +62,7 @@ module.exports = (app) => {
             callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
         },
         (accessToken: string, refreshToken: string, profile: any, done) => {
-            return done(null, { id: profile.id })
+            return done(null, { googleId: profile.id })
         }
     ))
 
@@ -94,20 +93,7 @@ module.exports = (app) => {
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/connect/callback`,
         },
         (accessToken: string, refreshToken: string, profile: any, done) => {
-            return done(null, { id: profile.id })
+            return done(null, { facebookId: profile.id })
         }
     ))
-
-    passport.serializeUser(function(user, done) {
-        return done(null, user.id)
-    })
-
-    passport.deserializeUser(async function(id, done) {
-        try {
-            const user = await User.findByPk(id, { raw: true })
-            done(null, user)
-        } catch (error) {
-            console.log(error)
-        }
-    })
 }

@@ -169,20 +169,17 @@ module.exports = {
     },
     updateProfile: async (req: Request, res: Response) => {
         try {
-            console.log(req.body)
-            if(req.body.access_token) {
-                const { googleId } = await getGoogleData(req.body.access_token)
-                req.body.googleId = googleId
-                delete req.body.access_token
-            }
+            const userId = req.user!.id
+            await User.update(
+                req.body,
+                {
+                    where: {
+                        id: userId
+                    },
+                }
+            )
 
-            const currentUser = req.user!
-            const userId = currentUser.id
-            const user = await User.findByPk(userId, {
-                attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
-            })
-            await user.update(req.body)
-            return res.json({ status: "success", message: "Profile updated successfully.", user })
+            return res.json({ status: "success", message: "Profile updated successfully." })
         } catch (error) {
             res.status(500).json({
                 status: 'error',
@@ -232,43 +229,7 @@ module.exports = {
             })
         }
     },
-    connectFacebookAccount: async (req: Request, res: Response) => {
-        try {
-            const { facebookId } = req.body
-            const currentUser = req.user!
-            let user = await User.findOne({ where: { facebookId } })
-            if(user !== null) return res.json({status: 'error', message: 'Account has been already registered.'})
-            user = await User.findByPk(currentUser.id, { 
-                attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
-            })
-            await user.update({ facebookId })
-            return res.json({status: 'success', message: 'Account connected successfully.', user})
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
-    connectGoogleAccount: async (req: Request, res: Response) => {
-        try {
-            const currentUser = req.user!
-            const { googleId } = await getGoogleData(req.body.access_token)
-            let user = await User.findOne({ where: { googleId } })
-            if(user !== null) return res.json({status: 'error', message: 'Account has been already registered.'})
-            user = await User.findByPk(currentUser.id, { 
-                attributes: ['id', 'name', 'email', 'facebookId', 'googleId']
-            })
-            await user.update({ googleId })
-            return res.json({status: 'success', message: 'Account connected successfully.', user})
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
-    googleSigninCallback: async (req: Request, res: Response) => {
+    oauthSigninCallback: async (req: Request, res: Response) => {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET)
@@ -281,56 +242,23 @@ module.exports = {
             })
         }
     },
-    googleConnectCallback: async (req: Request, res: Response) => {
+    oauthConnectCallback: async (req: Request, res: Response) => {
         try {
-            const googleId = req.user?.id
+            const data = req.user
+            if(await User.findOne({ where: data })) {
+                return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=ACCOUNT_ALREADY_CONNECTED`)
+            }
+
             const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
             await User.update(
-                {
-                    googleId
-                },
+                data,
                 {
                     where: {
                         id: userId
                     }
                 }
             )
-            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback`)
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
-    facebookSigninCallback: async (req: Request, res: Response) => {
-        try {
-            const payLoad = { id: req.user!.id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
-            res.cookie('token', token)
-            return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
-    facebookConnectCallback: async (req: Request, res: Response) => {
-        try {
-            const facebookId = req.user!.id
-            const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
-            await User.update(
-                {
-                    facebookId
-                },
-                {
-                    where: {
-                        id: userId
-                    }
-                }
-            )
-            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback`)
+            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=SUCCESS`)
         } catch (error) {
             res.status(500).json({
                 status: 'error',

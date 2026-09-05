@@ -13,14 +13,14 @@ const whiteList = ['https://todorest-715325.web.app', 'https://todorest-715325.f
 import type { CorsOptions } from "cors"
 
 const corsOption: CorsOptions = {
-    origin: function (origin, callback) {
-        if (!origin || whiteList.indexOf(origin) !== -1) {
-          callback(null, true)
-        } else {
-          callback(new Error(`Origin ${origin} is not allowed by CORS policy`))
-        }
-    },
-    credentials: true
+  origin: function (origin, callback) {
+      if (!origin || whiteList.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error(`Origin ${origin} is not allowed by CORS policy`))
+      }
+  },
+  credentials: true
 }
 
 const certOtions = {
@@ -33,14 +33,6 @@ app.use(cors(corsOption))
 app.use(express.json())
 usePassport(app)
 app.use(routes)
-
-// app.listen(port, () => {
-//     console.log(`App is listening on port ${port}`)
-// })
-
-app.get('/', (req, res) => res.send('hello'))
-
-
 
 https.createServer(certOtions, app).listen(port, () => {
   console.log("Server running at https://localhost:3000");
