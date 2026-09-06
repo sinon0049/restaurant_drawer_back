@@ -100,55 +100,6 @@ module.exports = {
             })
         }
     },
-    facebookSignIn: async (req: Request, res: Response) => {
-        try {
-            const facebookId = req.body.facebookId
-            let user = await User.findOne({ where: { facebookId }})
-            if(!user) user = await User.create(req.body)
-            const token = jwt.sign({ id: user.id }, process.env.SECRET)
-            return res.json({
-                status: 'success',
-                message: 'signin success',
-                token,
-                user: {
-                    id: user.dataValues.id,
-                    email: user.dataValues.email,
-                    name: user.dataValues.name,
-                    isPwdSet: user.dataValues.password ? true : false
-                }
-            })
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
-    googleSignIn: async (req: Request, res: Response) => {
-        try {
-            const googleData = await getGoogleData(req.body.access_token)
-            const { googleId } = googleData
-            let user = await User.findOne({ where: { googleId }})
-            if(!user) user = await User.create(googleData)
-            const token = jwt.sign({ id: user.id }, process.env.SECRET)
-            return res.json({
-                status: 'success',
-                message: 'signin success',
-                token,
-                user: {
-                    id: user.dataValues.id,
-                    email: user.dataValues.email,
-                    name: user.dataValues.name,
-                    isPwdSet: user.dataValues.password ? true : false
-                }
-            })
-        } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
-        }
-    },
     getCurrentUser: async (req: Request, res: Response) => {
         try {
             const { id } = req.user!
@@ -169,17 +120,20 @@ module.exports = {
     },
     updateProfile: async (req: Request, res: Response) => {
         try {
-            const userId = req.user!.id
+            const { id } = req.user!
             await User.update(
                 req.body,
                 {
                     where: {
-                        id: userId
+                        id
                     },
                 }
             )
 
-            return res.json({ status: "success", message: "Profile updated successfully." })
+            return res.status(200).json({ 
+                status: "success",
+                message: "Profile updated successfully."
+            })
         } catch (error) {
             res.status(500).json({
                 status: 'error',
@@ -266,4 +220,28 @@ module.exports = {
             })
         }
     },
+    oauthDisconnect: async (req: Request, res: Response) => {
+        try {
+            console.log(req.body, req.user)
+            const { id } = req.user!
+            await User.update(
+                req.body,
+                {
+                    where: {
+                        id
+                    }
+                }
+            )
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Account disconnected successfully'
+            })
+        } catch (error) {
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
+        }
+    }
 }
