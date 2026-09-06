@@ -105,7 +105,7 @@ module.exports = {
             const { id } = req.user!
             const user = await User.findByPk(id, { 
                 raw: true,
-                attributes: ['id', 'email', 'name', 'facebookId', 'googleId', 'password']
+                attributes: ['id', 'email', 'name', 'facebookId', 'googleId']
             })
             return res.json({
                 ...user,
