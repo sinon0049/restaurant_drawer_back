@@ -26,3 +26,4 @@ pnpm-debug.log*
 #GAE env file and ignore file
 app.yaml
 .gcloudignore
+*.pem
