@@ -1,5 +1,7 @@
 const db = require('../models')
 const Restaurant = db.Restaurant
+
+const { searchNearbyRestaurants } = require('../utils/places')
 import type { Request, Response } from "express"
 
 module.exports = {
@@ -39,6 +41,27 @@ module.exports = {
             return res.json({ status: 'success', message: 'Restaurant deleted successfully.' })
         } catch (error) {
             console.log(error)
+        }
+    },
+    drawRandomRestaurant: async (req: Request, res: Response) => {
+        try {
+            console.log(req.body)
+
+            const { places } = await searchNearbyRestaurants(req.body)
+
+            console.log(places[0].displayName, places[0].location)
+
+            res.status(200).json({
+                status: 'success',
+                restaurant: places[0]
+            })
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({
+                status: 'error',
+                message: 'Internal server error.'
+            })
         }
     }
 }
