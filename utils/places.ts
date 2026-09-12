@@ -16,18 +16,15 @@ const callOptions = {
    otherArgs: {
       headers: {
          "X-Goog-FieldMask":
-         "places.displayName,places.formattedAddress,places.id,places.photos,places.nationalPhoneNumber,places.location",
+         "places.displayName,places.formattedAddress,places.photos,places.nationalPhoneNumber,places.location,places.currentOpeningHours,places.rating",
       },
    },
 }
 
-
-
 const searchNearbyRestaurants = async (opt: SearchRestaurantOptions) => {
-   console.log(opt)
    const request = {
       includedTypes: ["restaurant"],
-      maxResultCount: 10,
+      maxResultCount: 20,
       locationRestriction: {
          circle: {
             center: {
@@ -40,8 +37,18 @@ const searchNearbyRestaurants = async (opt: SearchRestaurantOptions) => {
       languageCode: 'zh-TW'
    }
 
-   const [data] = await placesClient.searchNearby(request,callOptions);
+   const [data] = await placesClient.searchNearby(request, callOptions);
    return data
 }
 
-module.exports = { searchNearbyRestaurants }
+const getPhoto = async (photoName: string) => {
+   const getPhotoOptions = {
+      name: `${photoName}/media`,
+      maxWidthPx: 500
+   }
+
+   const [photoMediaResponse] = await placesClient.getPhotoMedia(getPhotoOptions)
+   return photoMediaResponse
+}
+
+module.exports = { searchNearbyRestaurants, getPhoto }
