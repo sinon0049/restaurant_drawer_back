@@ -1,6 +1,8 @@
-const { PlacesClient } = require('@googlemaps/places').v1
+import { v1 } from '@googlemaps/places'
+import { google } from '@googlemaps/places/build/protos/protos';
+import 'dotenv/config.js'
 
-const placesClient = new PlacesClient({
+const placesClient = new v1.PlacesClient({
    apiKey: process.env.GOOGLE_MAPS_APIKEY || ''
 })
 
@@ -12,6 +14,19 @@ interface SearchRestaurantOptions {
    radius: number;
 }
 
+interface Restaurant {
+   location: {
+      latitude: number;
+      longitude: number;
+   },
+   name: string;
+   phone: string;
+   addr: string;
+   rating: number;
+   photo: string;
+   openNow: boolean;
+}
+
 const callOptions = {
    otherArgs: {
       headers: {
@@ -21,34 +36,70 @@ const callOptions = {
    },
 }
 
-const searchNearbyRestaurants = async (opt: SearchRestaurantOptions) => {
-   const request = {
-      includedTypes: ["restaurant"],
-      maxResultCount: 20,
-      locationRestriction: {
-         circle: {
-            center: {
-                  latitude: opt.location.lat,
-                  longitude: opt.location.lng,
-            },
-            radius: opt.radius,
-         },
+const toRestaurant = (place: google.maps.places.v1.IPlace): Restaurant => {
+   const latitude = place.location?.latitude
+   const longitude = place.location?.longitude
+
+   if(typeof(latitude) !== 'number' || typeof(longitude) !== 'number') {
+      throw new Error('Invalid latitude or longitude')
+   }
+
+   return {
+      location: {
+         latitude,
+         longitude
       },
-      languageCode: 'zh-TW'
+      name: place.displayName?.text ?? '',
+      phone: place.nationalPhoneNumber ?? '',
+      addr: place.formattedAddress ?? '',
+      rating: place.rating ?? -1,
+      photo: place.photos?.[0]?.name ?? '',
+      openNow: place.currentOpeningHours?.openNow ?? false
    }
-
-   const [data] = await placesClient.searchNearby(request, callOptions);
-   return data
 }
 
-const getPhoto = async (photoName: string) => {
-   const getPhotoOptions = {
-      name: `${photoName}/media`,
-      maxWidthPx: 500
-   }
+const searchNearbyRestaurants = async (opt: SearchRestaurantOptions) => {
+   try {
+      const request = {
+         includedTypes: ["restaurant"],
+         maxResultCount: 20,
+         locationRestriction: {
+            circle: {
+               center: {
+                     latitude: opt.location.lat,
+                     longitude: opt.location.lng,
+               },
+               radius: opt.radius,
+            },
+         },
+         languageCode: 'zh-TW'
+      }
 
-   const [photoMediaResponse] = await placesClient.getPhotoMedia(getPhotoOptions)
-   return photoMediaResponse
+      const [response] = await placesClient.searchNearby(request, callOptions);
+
+      if(response.places === null || response.places === undefined) {
+         throw new Error('No restaurant nearby.')
+      }
+
+      return response.places.map(toRestaurant)
+   } catch (error) {
+      console.log('Search error: ', error)
+      throw error
+   }
 }
 
-module.exports = { searchNearbyRestaurants, getPhoto }
+const getPhotoUri = async (photoName: string) => {
+   try {
+      const getPhotoOptions = {
+         name: `${photoName}/media`,
+         maxWidthPx: 500
+      }
+
+      const [photoMediaResponse] = await placesClient.getPhotoMedia(getPhotoOptions)
+      return photoMediaResponse
+   } catch (error) {
+      console.log('Get photo error: ', error)
+   }
+}
+
+export { searchNearbyRestaurants, getPhotoUri }

@@ -2,29 +2,12 @@ const bcrypt = require('bcryptjs')
 const db = require('../models')
 const User = db.User
 const jwt = require('jsonwebtoken')
-const { OAuth2Client } = require('google-auth-library')
-const oauth2Client = new OAuth2Client()
-const googleApiUrl = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 import type { Request, Response } from "express"
 
 const optCookie: any = {
     httpOnly: true,
     sameSite: 'Lax',
-}
-
-async function getGoogleData (access_token: string): Promise<any> {
-    try {
-        oauth2Client.setCredentials({ access_token })
-        const { data } = await oauth2Client.request({ url: googleApiUrl })
-        return {
-            googleId: data.sub,
-            name: data.name,
-            email: data.email
-        }
-    } catch (error) {
-        console.log(error)
-    }
 }
 
 module.exports = {
@@ -105,7 +88,7 @@ module.exports = {
             const { id } = req.user!
             const user = await User.findByPk(id, { 
                 raw: true,
-                attributes: ['id', 'email', 'name', 'facebookId', 'googleId']
+                attributes: ['id', 'email', 'name', 'facebookId', 'googleId', 'password']
             })
             return res.json({
                 ...user,
@@ -222,7 +205,6 @@ module.exports = {
     },
     oauthDisconnect: async (req: Request, res: Response) => {
         try {
-            console.log(req.body, req.user)
             const { id } = req.user!
             await User.update(
                 req.body,

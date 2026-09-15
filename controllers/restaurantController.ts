@@ -2,7 +2,7 @@ const db = require('../models')
 const crypto = require('crypto')
 const Restaurant = db.Restaurant
 
-const { searchNearbyRestaurants, getPhoto } = require('../utils/places')
+import { searchNearbyRestaurants, getPhotoUri } from '../utils/places.js'
 import type { Request, Response } from "express"
 
 module.exports = {
@@ -45,9 +45,8 @@ module.exports = {
     },
     drawRandomRestaurant: async (req: Request, res: Response) => {
         try {
-            let photo = ''
-            const { places } = await searchNearbyRestaurants(req.body)
-            const currentOpeningRestaurants = places.filter(p => p.currentOpeningHours && p.currentOpeningHours.openNow)
+            const places = await searchNearbyRestaurants(req.body)
+            const currentOpeningRestaurants = places.filter(p => p.openNow === true)
 
             if(!currentOpeningRestaurants.length) {
                 return res.status(200).json({
@@ -55,19 +54,16 @@ module.exports = {
                     restaurant: null
                 })
             }
-            const restaurant = currentOpeningRestaurants[crypto.randomInt(0, currentOpeningRestaurants.length)]
 
-            if(restaurant.photos && restaurant.photos.length) {
-                const photoResponse = await getPhoto(restaurant.photos[0].name)
-                photo = photoResponse.photoUri
-            }
-
-            // get attributes from restautant(place) object
+            const restaurant = currentOpeningRestaurants[crypto.randomInt(0, currentOpeningRestaurants.length)]!
+    
+            const photoResponse = await getPhotoUri(restaurant.photo)
+            const photo = photoResponse?.photoUri ?? ''
             const {
                 location: { latitude: lat, longitude: lng },
-                displayName: { text: name },
-                nationalPhoneNumber: phone,
-                formattedAddress: addr,
+                name,
+                phone,
+                addr,
                 rating
             } = restaurant
 
