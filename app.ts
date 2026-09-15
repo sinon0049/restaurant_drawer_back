@@ -23,17 +23,19 @@ const corsOption: CorsOptions = {
   credentials: true
 }
 
-const certOtions = {
-  key: fs.readFileSync("./localhost-key.pem"),
-  cert: fs.readFileSync("./localhost.pem"),
-};
-
 app.use(cookieParser())
 app.use(cors(corsOption))
 app.use(express.json())
 usePassport(app)
 app.use(routes)
 
-https.createServer(certOtions, app).listen(port, () => {
-  console.log("Server running at https://localhost:3000");
-});
+if (process.env.NODE_ENV === 'development') {
+  const certOptions = {
+    key: fs.readFileSync('./localhost-key.pem'),
+    cert: fs.readFileSync('./localhost.pem'),
+  }
+
+  https.createServer(certOptions, app).listen(port, () => console.log("Server running at https://localhost:3000"))
+} else {
+  app.listen(port)
+}
