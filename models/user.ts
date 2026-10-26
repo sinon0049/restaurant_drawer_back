@@ -1,17 +1,12 @@
-'use strict';
-import type Sequelize from 'sequelize'
+import Sequelize, { Model, type ModelStatic } from 'sequelize'
 
-type SequelizeTypes = typeof Sequelize.DataTypes
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize: Sequelize, DataTypes: SequelizeTypes) => {
+const userModelFactory = (sequelize: Sequelize, DataTypes: typeof Sequelize.DataTypes) => {
   class User extends Model {
     static associate(models: Record<string, unknown>) {
 
     }
   }
-  User.init({
+  (User as ModelStatic<Model>).init({
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     name: DataTypes.STRING,
@@ -23,3 +18,5 @@ module.exports = (sequelize: Sequelize, DataTypes: SequelizeTypes) => {
   });
   return User;
 };
+
+export default userModelFactory

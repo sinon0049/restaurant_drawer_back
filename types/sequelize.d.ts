@@ -3,4 +3,6 @@
 
 declare module 'sequelize' {
   export { default } from 'sequelize/types/sequelize'
+  export { Model } from 'sequelize/types/model'
+  export type { ModelStatic } from 'sequelize/types/model'
 }

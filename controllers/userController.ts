@@ -126,6 +126,7 @@ const userController = {
     },
     updatePassword: async (req: Request, res: Response) => {
         try {
+            console.log(req.body)
             const { currentPassword, newPassword, confirmPassword } = req.body
             const { password: pwdHash, id } = req.user!
 
@@ -160,6 +161,7 @@ const userController = {
                 message: 'Password updated successfully.'
             })
         } catch (error) {
+            console.log(error)
             res.status(500).json({
                 status: 'error',
                 message: 'Internal server error.'

@@ -1,17 +1,12 @@
-'use strict';
-import type Sequelize from 'sequelize'
+import Sequelize, { Model, type ModelStatic } from 'sequelize'
 
-type SequelizeTypes = typeof Sequelize.DataTypes
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize: Sequelize, DataTypes: SequelizeTypes) => {
+const restaurantModelFactory = (sequelize: Sequelize, DataTypes: typeof Sequelize.DataTypes) => {
   class Restaurant extends Model {
     static associate(models: Record<string, unknown>) {
       
     }
   }
-  Restaurant.init({
+  (Restaurant as ModelStatic<Model>).init({
     name: DataTypes.STRING,
     address: DataTypes.STRING,
     userId: DataTypes.INTEGER,
@@ -22,3 +17,5 @@ module.exports = (sequelize: Sequelize, DataTypes: SequelizeTypes) => {
   });
   return Restaurant;
 };
+
+export default restaurantModelFactory

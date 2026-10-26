@@ -1,12 +1,10 @@
-import Sequelize from 'sequelize'
+import Sequelize, { type Model, type ModelStatic } from 'sequelize'
 import configByEnvironment from '../config/config.js'
-import userModelFactory = require('./user.js')
-import restaurantModelFactory = require('./restaurant.js')
+import userModelFactory from './user.js'
+import restaurantModelFactory from './restaurant.js'
 
 const env = (process.env.NODE_ENV || 'development') as keyof typeof configByEnvironment
 const config: any = configByEnvironment[env]
-const db: Record<string, any> = {}
-
 let sequelize: Sequelize
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
@@ -14,21 +12,17 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-type ModelFactory = (sequelize: Sequelize, dataTypes: typeof Sequelize.DataTypes) => any
-const modelFactories = [userModelFactory, restaurantModelFactory] as ModelFactory[]
-
-for (const modelFactory of modelFactories) {
-  const model = modelFactory(sequelize, Sequelize.DataTypes)
-  db[model.name] = model
+type AppModel = ModelStatic<Model> & {
+  associate(models: Record<string, unknown>): void
 }
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+const models: { User: AppModel; Restaurant: AppModel } = {
+  User: userModelFactory(sequelize, Sequelize.DataTypes),
+  Restaurant: restaurantModelFactory(sequelize, Sequelize.DataTypes),
+}
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+const db = { ...models, sequelize, Sequelize }
+
+Object.values(models).forEach(model => model.associate(db))
 
 export default db
