@@ -8,17 +8,29 @@ const bcrypt = require('bcryptjs')
 const User = db.User
 require('dotenv').config()
 
+import type { DoneCallback } from "passport";
+import type { Express } from "express";
+import type { Request } from "express";
+import type { FacebookConnectData, GoogleConnectData } from "../types/user";
+
+type OAuthConnectDoneCallback<T> = (err: any, user: null | false | undefined | T) => void
+
+interface JwtPayLoad {
+    id: number;
+    iat: number;
+}
+
 let jwtOptions = {
-    jwtFromRequest: (req) => {
+    jwtFromRequest: (req: Request) => {
         return req.cookies.token || null
      },
     secretOrKey: process.env.SECRET,
 }
 
-module.exports = (app) => {
+module.exports = (app: Express) => {
     app.use(passport.initialize())
 
-    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done) => {
+    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done: DoneCallback) => {
         const user = await User.findOne({where: {email}, raw: true})
         if(!user) return done(null, false)
         if(!user.password) return done(null, false)
@@ -26,7 +38,7 @@ module.exports = (app) => {
         return done(null, user)
     }))
 
-    passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload, done) => {
+    passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload: JwtPayLoad, done: DoneCallback) => {
         try {
             const user = await User.findByPk(jwt_payload.id, { raw: true })
             if(!user) return done(null, false)
@@ -41,7 +53,7 @@ module.exports = (app) => {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
         },
-        async (accessToken: string, refreshToken: string, profile: any, done) => {
+        async (accessToken: string, refreshToken: string, profile: any, done: DoneCallback) => {
             const user = await User.findOrCreate({
                 where: {
                     googleId: profile.id
@@ -61,7 +73,7 @@ module.exports = (app) => {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
         },
-        (accessToken: string, refreshToken: string, profile: any, done) => {
+        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback<GoogleConnectData>) => {
             return done(null, { googleId: profile.id })
         }
     ))
@@ -72,7 +84,7 @@ module.exports = (app) => {
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/signin/callback`,
             profileFields: ["id", "displayName", "email"]
         },
-        async (accessToken: string, refreshToken: string, profile: any, done) => {
+        async (accessToken: string, refreshToken: string, profile: any, done: DoneCallback) => {
             const user = await User.findOrCreate({
                 where: {
                     facebookId: profile.id
@@ -92,7 +104,7 @@ module.exports = (app) => {
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/connect/callback`,
         },
-        (accessToken: string, refreshToken: string, profile: any, done) => {
+        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback<FacebookConnectData>) => {
             return done(null, { facebookId: profile.id })
         }
     ))

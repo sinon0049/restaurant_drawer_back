@@ -1,5 +1,4 @@
 // This file is used to let typescript recognize req.user as AuthUser
-
 import type { AuthUser } from "./user"
 import "passport"
 
