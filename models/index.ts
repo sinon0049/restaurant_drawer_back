@@ -14,7 +14,10 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-for (const modelFactory of [userModelFactory, restaurantModelFactory]) {
+type ModelFactory = (sequelize: Sequelize, dataTypes: typeof Sequelize.DataTypes) => any
+const modelFactories = [userModelFactory, restaurantModelFactory] as ModelFactory[]
+
+for (const modelFactory of modelFactories) {
   const model = modelFactory(sequelize, Sequelize.DataTypes)
   db[model.name] = model
 }

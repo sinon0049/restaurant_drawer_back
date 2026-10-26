@@ -1,10 +1,13 @@
 'use strict';
+import type Sequelize from 'sequelize'
+
+type SequelizeTypes = typeof Sequelize.DataTypes
 const {
   Model
 } = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize: Sequelize, DataTypes: SequelizeTypes) => {
   class Restaurant extends Model {
-    static associate(models) {
+    static associate(models: Record<string, unknown>) {
       
     }
   }
