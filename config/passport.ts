@@ -1,17 +1,16 @@
-const passport = require('passport')
-const LocalStrategy = require('passport-local').Strategy
-const JwtStrategy = require('passport-jwt').Strategy
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
-const db = require('../models')
-const bcrypt = require('bcryptjs')
-const User = db.User
-require('dotenv').config()
+import passport from 'passport'
+import { Strategy as LocalStrategy } from 'passport-local'
+import { Strategy as JwtStrategy } from 'passport-jwt'
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import { Strategy as FacebookStrategy } from 'passport-facebook'
+import db from '../models/index.js'
+import bcrypt from 'bcryptjs'
+import 'dotenv/config'
+import type { DoneCallback } from 'passport'
+import type { Express, Request } from 'express'
+import type { FacebookConnectData, GoogleConnectData } from '../types/user.js'
 
-import type { DoneCallback } from "passport";
-import type { Express } from "express";
-import type { Request } from "express";
-import type { FacebookConnectData, GoogleConnectData } from "../types/user";
+const User = db.User
 
 type OAuthConnectDoneCallback<T> = (err: any, user: null | false | undefined | T) => void
 
@@ -27,7 +26,7 @@ let jwtOptions = {
     secretOrKey: process.env.SECRET,
 }
 
-module.exports = (app: Express) => {
+const usePassport = (app: Express) => {
     app.use(passport.initialize())
 
     passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done: DoneCallback) => {
@@ -109,3 +108,5 @@ module.exports = (app: Express) => {
         }
     ))
 }
+
+export default usePassport

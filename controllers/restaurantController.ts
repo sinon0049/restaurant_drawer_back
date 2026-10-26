@@ -1,11 +1,11 @@
-const db = require('../models')
-const crypto = require('crypto')
+import db from '../models/index.js'
+import crypto from 'crypto'
+import { searchNearbyRestaurants, getPhotoUri } from '../utils/places.js'
+import type { Request, Response } from 'express'
+
 const Restaurant = db.Restaurant
 
-import { searchNearbyRestaurants, getPhotoUri } from '../utils/places.js'
-import type { Request, Response } from "express"
-
-module.exports = {
+const restaurantController = {
     getRecord: async (req: Request, res: Response) => {
         try {
             const userId = req.user!.id
@@ -95,3 +95,5 @@ module.exports = {
         }
     }
 }
+
+export default restaurantController

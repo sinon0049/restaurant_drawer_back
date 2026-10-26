@@ -1,16 +1,16 @@
-const bcrypt = require('bcryptjs')
-const db = require('../models')
-const User = db.User
-const jwt = require('jsonwebtoken')
+import bcrypt from 'bcryptjs'
+import db from '../models/index.js'
+import jwt from 'jsonwebtoken'
+import type { Request, Response } from 'express'
 
-import type { Request, Response } from "express"
+const User = db.User
 
 const optCookie: any = {
     httpOnly: true,
     sameSite: 'Lax',
 }
 
-module.exports = {
+const userController = {
     signUp: async (req: Request, res: Response) => {
         try {
             const { email, password, name, confirmPassword } = req.body
@@ -227,3 +227,5 @@ module.exports = {
         }
     }
 }
+
+export default userController

@@ -1,29 +1,23 @@
-'use strict';
+import Sequelize from 'sequelize'
+import configByEnvironment from '../config/config.js'
+import userModelFactory = require('./user.js')
+import restaurantModelFactory = require('./restaurant.js')
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
-const db = {};
+const env = (process.env.NODE_ENV || 'development') as keyof typeof configByEnvironment
+const config: any = configByEnvironment[env]
+const db: Record<string, any> = {}
 
-let sequelize;
+let sequelize: Sequelize
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.endsWith('.ts') || file.endsWith('.js'));
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+for (const modelFactory of [userModelFactory, restaurantModelFactory]) {
+  const model = modelFactory(sequelize, Sequelize.DataTypes)
+  db[model.name] = model
+}
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
@@ -34,4 +28,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export default db

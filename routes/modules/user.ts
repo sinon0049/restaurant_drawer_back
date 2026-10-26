@@ -1,7 +1,8 @@
-const express = require('express')
+import express from 'express'
+import passport from 'passport'
+import userController from '../../controllers/userController.js'
+
 const router = express.Router()
-const passport = require('passport')
-const userController = require('../../controllers/userController')
 
 // password signup/signin
 router.post('/signup', userController.signUp)
@@ -32,4 +33,4 @@ router.get('/current_user', passport.authenticate('token', { session: false }), 
 router.put('/profile', passport.authenticate('token', { session: false }), userController.updateProfile)
 router.put('/password', passport.authenticate('token', { session: false }), userController.updatePassword)
 
-module.exports = router
+export default router
