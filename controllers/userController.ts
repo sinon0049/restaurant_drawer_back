@@ -51,7 +51,7 @@ const userController = {
         try {
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
+            const token = jwt.sign(payLoad, process.env.SECRET!)
             res.cookie('token', token, optCookie)
             return res.status(200).json({
                 status: 'success',
@@ -169,7 +169,7 @@ const userController = {
     oauthSigninCallback: async (req: Request, res: Response) => {
         try {
             const payLoad = { id: req.user!.id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
+            const token = jwt.sign(payLoad, process.env.SECRET!)
             res.cookie('token', token)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
@@ -181,12 +181,15 @@ const userController = {
     },
     oauthConnectCallback: async (req: Request, res: Response) => {
         try {
+            // 'data' here is the profile returned by google/facebook callback
+            // userId is accessed from req.cookies
             const data = req.user
             if(await User.findOne({ where: data })) {
                 return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=ACCOUNT_ALREADY_CONNECTED`)
             }
 
-            const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
+            const payload = jwt.verify(req.cookies.token, process.env.SECRET!) as { id: number }
+            const userId = payload.id
             await User.update(
                 data,
                 {
