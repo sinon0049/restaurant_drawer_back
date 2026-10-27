@@ -5,6 +5,7 @@ import https from 'https'
 import fs from 'fs'
 import routes from './routes/index.js'
 import usePassport from './config/passport.js'
+import errorHandler from './middleware/errorHandler.js'
 import 'dotenv/config'
 import type { CorsOptions } from 'cors'
 
@@ -28,6 +29,7 @@ app.use(cors(corsOption))
 app.use(express.json())
 usePassport(app)
 app.use(routes)
+app.use(errorHandler)
 
 if (process.env.NODE_ENV === 'development') {
   const certOptions = {
