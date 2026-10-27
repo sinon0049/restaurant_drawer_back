@@ -1,16 +1,16 @@
-const bcrypt = require('bcryptjs')
-const db = require('../models')
-const User = db.User
-const jwt = require('jsonwebtoken')
+import bcrypt from 'bcryptjs'
+import db from '../models/index.js'
+import jwt from 'jsonwebtoken'
+import type { Request, Response } from 'express'
 
-import type { Request, Response } from "express"
+const User = db.User
 
 const optCookie: any = {
     httpOnly: true,
     sameSite: 'Lax',
 }
 
-module.exports = {
+const userController = {
     signUp: async (req: Request, res: Response) => {
         try {
             const { email, password, name, confirmPassword } = req.body
@@ -51,7 +51,7 @@ module.exports = {
         try {
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
+            const token = jwt.sign(payLoad, process.env.SECRET!)
             res.cookie('token', token, optCookie)
             return res.status(200).json({
                 status: 'success',
@@ -126,6 +126,7 @@ module.exports = {
     },
     updatePassword: async (req: Request, res: Response) => {
         try {
+            console.log(req.body)
             const { currentPassword, newPassword, confirmPassword } = req.body
             const { password: pwdHash, id } = req.user!
 
@@ -160,6 +161,7 @@ module.exports = {
                 message: 'Password updated successfully.'
             })
         } catch (error) {
+            console.log(error)
             res.status(500).json({
                 status: 'error',
                 message: 'Internal server error.'
@@ -169,7 +171,7 @@ module.exports = {
     oauthSigninCallback: async (req: Request, res: Response) => {
         try {
             const payLoad = { id: req.user!.id }
-            const token = jwt.sign(payLoad, process.env.SECRET)
+            const token = jwt.sign(payLoad, process.env.SECRET!)
             res.cookie('token', token)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
@@ -181,12 +183,15 @@ module.exports = {
     },
     oauthConnectCallback: async (req: Request, res: Response) => {
         try {
+            // 'data' here is the profile returned by google/facebook callback
+            // userId is accessed from req.cookies
             const data = req.user
             if(await User.findOne({ where: data })) {
                 return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=ACCOUNT_ALREADY_CONNECTED`)
             }
 
-            const userId = jwt.verify(req.cookies.token, process.env.SECRET).id
+            const payload = jwt.verify(req.cookies.token, process.env.SECRET!) as { id: number }
+            const userId = payload.id
             await User.update(
                 data,
                 {
@@ -227,3 +232,5 @@ module.exports = {
         }
     }
 }
+
+export default userController

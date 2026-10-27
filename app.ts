@@ -1,16 +1,16 @@
-const express = require('express')
+import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import https from 'https'
+import fs from 'fs'
+import routes from './routes/index.js'
+import usePassport from './config/passport.js'
+import 'dotenv/config'
+import type { CorsOptions } from 'cors'
+
 const app = express()
 const port = process.env.PORT || 3000
-const routes = require('./routes')
-const cors = require('cors')
-const usePassport = require('./config/passport')
-const cookieParser = require('cookie-parser')
-const https = require('https')
-const fs = require('fs')
-require('dotenv').config()
 const whiteList = ['https://todorest-715325.web.app', 'https://todorest-715325.firebaseapp.com', 'https://localhost:5173']
-
-import type { CorsOptions } from "cors"
 
 const corsOption: CorsOptions = {
   origin: function (origin, callback) {

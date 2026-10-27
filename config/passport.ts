@@ -1,19 +1,17 @@
-const passport = require('passport')
-const LocalStrategy = require('passport-local').Strategy
-const JwtStrategy = require('passport-jwt').Strategy
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
-const db = require('../models')
-const bcrypt = require('bcryptjs')
+import passport from 'passport'
+import { Strategy as LocalStrategy } from 'passport-local'
+import { Strategy as JwtStrategy } from 'passport-jwt'
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import { Strategy as FacebookStrategy } from 'passport-facebook'
+import db from '../models/index.js'
+import bcrypt from 'bcryptjs'
+import 'dotenv/config'
+import type { Express, Request } from 'express'
+import type { FacebookConnectData, GoogleConnectData } from '../types/user.js'
+
 const User = db.User
-require('dotenv').config()
 
-import type { DoneCallback } from "passport";
-import type { Express } from "express";
-import type { Request } from "express";
-import type { FacebookConnectData, GoogleConnectData } from "../types/user";
-
-type OAuthConnectDoneCallback<T> = (err: any, user: null | false | undefined | T) => void
+type OAuthConnectDoneCallback = (err: any, user?: any) => void
 
 interface JwtPayLoad {
     id: number;
@@ -24,13 +22,13 @@ let jwtOptions = {
     jwtFromRequest: (req: Request) => {
         return req.cookies.token || null
      },
-    secretOrKey: process.env.SECRET,
+    secretOrKey: process.env.SECRET!,
 }
 
-module.exports = (app: Express) => {
+const usePassport = (app: Express) => {
     app.use(passport.initialize())
 
-    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done: DoneCallback) => {
+    passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done) => {
         const user = await User.findOne({where: {email}, raw: true})
         if(!user) return done(null, false)
         if(!user.password) return done(null, false)
@@ -38,7 +36,7 @@ module.exports = (app: Express) => {
         return done(null, user)
     }))
 
-    passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload: JwtPayLoad, done: DoneCallback) => {
+    passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload: JwtPayLoad, done) => {
         try {
             const user = await User.findByPk(jwt_payload.id, { raw: true })
             if(!user) return done(null, false)
@@ -49,11 +47,11 @@ module.exports = (app: Express) => {
     }))
 
     passport.use('google-signin', new GoogleStrategy({
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            clientID: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
         },
-        async (accessToken: string, refreshToken: string, profile: any, done: DoneCallback) => {
+        async (accessToken: string, refreshToken: string, profile: any, done) => {
             const user = await User.findOrCreate({
                 where: {
                     googleId: profile.id
@@ -69,22 +67,23 @@ module.exports = (app: Express) => {
     ))
 
     passport.use('google-connect', new GoogleStrategy({
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            clientID: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
         },
-        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback<GoogleConnectData>) => {
-            return done(null, { googleId: profile.id })
+        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback) => {
+            const connectData: GoogleConnectData = { googleId: profile.id }
+            return done(null, connectData)
         }
     ))
 
     passport.use('facebook-signin', new FacebookStrategy({
-            clientID: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            clientID: process.env.FACEBOOK_CLIENT_ID!,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/signin/callback`,
             profileFields: ["id", "displayName", "email"]
         },
-        async (accessToken: string, refreshToken: string, profile: any, done: DoneCallback) => {
+        async (accessToken: string, refreshToken: string, profile: any, done) => {
             const user = await User.findOrCreate({
                 where: {
                     facebookId: profile.id
@@ -100,12 +99,15 @@ module.exports = (app: Express) => {
     ))
 
     passport.use('facebook-connect', new FacebookStrategy({
-            clientID: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            clientID: process.env.FACEBOOK_CLIENT_ID!,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/connect/callback`,
         },
-        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback<FacebookConnectData>) => {
-            return done(null, { facebookId: profile.id })
+        (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback) => {
+            const connectData: FacebookConnectData = { facebookId: profile.id }
+            return done(null, connectData)
         }
     ))
 }
+
+export default usePassport

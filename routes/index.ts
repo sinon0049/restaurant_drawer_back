@@ -1,9 +1,10 @@
-const express = require('express')
+import express from 'express'
+import restaurant from './modules/restaurant.js'
+import user from './modules/user.js'
+
 const router = express.Router()
-const restaurant = require('./modules/restaurant')
-const user = require('./modules/user')
 
 router.use('/restaurants', restaurant)
 router.use('/users', user)
 
-module.exports = router
+export default router

@@ -1,0 +1,6 @@
+// This file is used for Sequelize to recognize config/config.ts
+const path = require('node:path')
+
+module.exports = {
+  config: path.resolve(__dirname, 'config', 'config.ts'),
+}
