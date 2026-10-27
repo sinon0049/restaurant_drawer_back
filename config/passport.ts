@@ -29,11 +29,15 @@ const usePassport = (app: Express) => {
     app.use(passport.initialize())
 
     passport.use(new LocalStrategy({usernameField: "email"}, async (email: string, password: string, done) => {
-        const user = await User.findOne({where: {email}, raw: true})
-        if(!user) return done(null, false)
-        if(!user.password) return done(null, false)
-        if(!bcrypt.compareSync(password, user.password)) return done(null, false)
-        return done(null, user)
+        try {
+            const user = await User.findOne({where: {email}, raw: true})
+            if(!user) return done(null, false)
+            if(!user.password) return done(null, false)
+            if(!bcrypt.compareSync(password, user.password)) return done(null, false)
+            return done(null, user)
+        } catch (error) {
+            return done(error)
+        }
     }))
 
     passport.use('token', new JwtStrategy(jwtOptions, async (jwt_payload: JwtPayLoad, done) => {
@@ -42,7 +46,7 @@ const usePassport = (app: Express) => {
             if(!user) return done(null, false)
             return done(null, user)
         } catch (error) {
-            console.log(error)
+            return done(error)
         }
     }))
 
@@ -52,17 +56,21 @@ const usePassport = (app: Express) => {
             callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
         },
         async (accessToken: string, refreshToken: string, profile: any, done) => {
-            const user = await User.findOrCreate({
-                where: {
-                    googleId: profile.id
-                },
-                defaults: {
-                    name: profile.displayName,
-                    email: profile.emails[0].value
-                }
-            })
+            try {
+                const user = await User.findOrCreate({
+                    where: {
+                        googleId: profile.id
+                    },
+                    defaults: {
+                        name: profile.displayName,
+                        email: profile.emails[0].value
+                    }
+                })
 
-            return done(null, user[0].dataValues)
+                return done(null, user[0].dataValues)
+            } catch (error) {
+                return done(error)
+            }
         }
     ))
 
@@ -84,17 +92,21 @@ const usePassport = (app: Express) => {
             profileFields: ["id", "displayName", "email"]
         },
         async (accessToken: string, refreshToken: string, profile: any, done) => {
-            const user = await User.findOrCreate({
-                where: {
-                    facebookId: profile.id
-                },
-                defaults: {
-                    name: profile.displayName,
-                    email: profile.emails[0].value
-                }
-            })
+            try {
+                const user = await User.findOrCreate({
+                    where: {
+                        facebookId: profile.id
+                    },
+                    defaults: {
+                        name: profile.displayName,
+                        email: profile.emails[0].value
+                    }
+                })
 
-            return done(null, user[0].dataValues)
+                return done(null, user[0].dataValues)
+            } catch (error) {
+                return done(error)
+            }
         }
     ))
 
