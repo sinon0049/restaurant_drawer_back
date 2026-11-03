@@ -1,12 +1,12 @@
 import db from '../models/index.js'
 import crypto from 'crypto'
 import { searchNearbyRestaurants, getPhotoUri } from '../utils/places.js'
-import type { Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 
 const Restaurant = db.Restaurant
 
 const restaurantController = {
-    getRecord: async (req: Request, res: Response) => {
+    getRecord: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const userId = req.user!.id
             const restaurants = await Restaurant.findAll({
@@ -18,14 +18,10 @@ const restaurantController = {
             })
             return res.json({ status: 'success', message: 'record get successfully', restaurants })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    deleteRecord: async (req: Request, res: Response) => {
+    deleteRecord: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { restaurantId } = req.params
             const restaurant = await Restaurant.findByPk(restaurantId)
@@ -36,14 +32,10 @@ const restaurantController = {
             await restaurant.destroy()
             return res.json({ status: 'success', message: 'Restaurant deleted successfully.' })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    drawRandomRestaurant: async (req: Request, res: Response) => {
+    drawRandomRestaurant: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const places = await searchNearbyRestaurants(req.body)
             const currentOpeningRestaurants = places.filter(p => p.openNow === true)
@@ -87,11 +79,7 @@ const restaurantController = {
                 restaurant: responseObject
             })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     }
 }

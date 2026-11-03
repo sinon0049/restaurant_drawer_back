@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import db from '../models/index.js'
 import jwt from 'jsonwebtoken'
-import type { Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 
 const User = db.User
 
@@ -11,7 +11,7 @@ const optCookie: any = {
 }
 
 const userController = {
-    signUp: async (req: Request, res: Response) => {
+    signUp: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password, name, confirmPassword } = req.body
             const existingUser = await User.findOne({ where: { email }})
@@ -41,13 +41,10 @@ const userController = {
                 user: newUser
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    signIn: async (req: Request, res: Response) => {
+    signIn: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
@@ -63,13 +60,10 @@ const userController = {
                 }
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    signOut: async (req: Request, res: Response) => {
+    signOut: async (req: Request, res: Response, next: NextFunction) => {
         try {
             res.clearCookie('token')
             res.status(200).json({
@@ -77,13 +71,10 @@ const userController = {
                 message: 'Sign out successfully'
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    getCurrentUser: async (req: Request, res: Response) => {
+    getCurrentUser: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.user!
             const user = await User.findByPk(id, { 
@@ -95,13 +86,10 @@ const userController = {
                 isPwdSet: user.password ? true : false
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    updateProfile: async (req: Request, res: Response) => {
+    updateProfile: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.user!
             await User.update(
@@ -118,15 +106,11 @@ const userController = {
                 message: "Profile updated successfully."
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    updatePassword: async (req: Request, res: Response) => {
+    updatePassword: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            console.log(req.body)
             const { currentPassword, newPassword, confirmPassword } = req.body
             const { password: pwdHash, id } = req.user!
 
@@ -161,27 +145,20 @@ const userController = {
                 message: 'Password updated successfully.'
             })
         } catch (error) {
-            console.log(error)
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    oauthSigninCallback: async (req: Request, res: Response) => {
+    oauthSigninCallback: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET!)
             res.cookie('token', token)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    oauthConnectCallback: async (req: Request, res: Response) => {
+    oauthConnectCallback: async (req: Request, res: Response, next: NextFunction) => {
         try {
             // 'data' here is the profile returned by google/facebook callback
             // userId is accessed from req.cookies
@@ -202,13 +179,10 @@ const userController = {
             )
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=SUCCESS`)
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     },
-    oauthDisconnect: async (req: Request, res: Response) => {
+    oauthDisconnect: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.user!
             await User.update(
@@ -225,10 +199,7 @@ const userController = {
                 message: 'Account disconnected successfully'
             })
         } catch (error) {
-            res.status(500).json({
-                status: 'error',
-                message: 'Internal server error.'
-            })
+            next(error)
         }
     }
 }
