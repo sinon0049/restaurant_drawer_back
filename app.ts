@@ -8,6 +8,7 @@ import usePassport from './config/passport.js'
 import errorHandler from './middleware/errorHandler.js'
 import 'dotenv/config'
 import type { CorsOptions } from 'cors'
+import session from 'express-session'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -24,6 +25,13 @@ const corsOption: CorsOptions = {
   credentials: true
 }
 
+app.use(
+  session({
+    secret: process.env.SECRET!,
+    resave: false,
+    saveUninitialized: false,
+  })
+)
 app.use(cookieParser())
 app.use(cors(corsOption))
 app.use(express.json())

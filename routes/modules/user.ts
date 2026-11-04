@@ -13,16 +13,16 @@ router.get('/google/signin', passport.authenticate('google-signin', { scope: ['p
 router.get('/google/signin/callback', passport.authenticate('google-signin', { session: false }), userController.oauthSigninCallback)
 
 // Google connect
-router.get('/google/connect', passport.authenticate('google-connect', { scope: ['profile'], prompt: 'select_account', session: false }))
-router.get('/google/connect/callback', passport.authenticate('google-connect', { session: false }), userController.oauthConnectCallback)
+router.get('/google/connect', passport.authenticate('token', { session: false }), userController.saveConnectInitiator('google'), passport.authenticate('google-connect', { scope: ['profile'], prompt: 'select_account', session: false }))
+router.get('/google/connect/callback', passport.authenticate('token', { session: false }), passport.authenticate('google-connect', { session: false, assignProperty: 'oauthUser' }), userController.oauthConnectCallback('google'))
 
 // Facebook signin
 router.get('/facebook/signin', passport.authenticate('facebook-signin', { scope: ['email'], session: false }))
 router.get('/facebook/signin/callback', passport.authenticate('facebook-signin', { session: false }), userController.oauthSigninCallback)
 
 // Facebook connect
-router.get('/facebook/connect', passport.authenticate('facebook-connect', { session: false }))
-router.get('/facebook/connect/callback', passport.authenticate('facebook-connect', { session: false }), userController.oauthConnectCallback)
+router.get('/facebook/connect', passport.authenticate('token', { session: false }), userController.saveConnectInitiator('facebook'), passport.authenticate('facebook-connect', { session: false }))
+router.get('/facebook/connect/callback', passport.authenticate('token', { session: false }), passport.authenticate('facebook-connect', { session: false, assignProperty: 'oauthUser' }), userController.oauthConnectCallback('facebook'))
 
 // Disconnect account
 router.post('/oauth/disconnect', passport.authenticate('token', { session: false }), userController.oauthDisconnect)

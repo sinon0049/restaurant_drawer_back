@@ -77,7 +77,8 @@ const usePassport = (app: Express) => {
     passport.use('google-connect', new GoogleStrategy({
             clientID: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`
+            callbackURL: `${process.env.BACKEND_URL}/users/google/connect/callback`,
+            state: true
         },
         (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback) => {
             const connectData: GoogleConnectData = { googleId: profile.id }
@@ -114,6 +115,7 @@ const usePassport = (app: Express) => {
             clientID: process.env.FACEBOOK_CLIENT_ID!,
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/connect/callback`,
+            state: true
         },
         (accessToken: string, refreshToken: string, profile: any, done: OAuthConnectDoneCallback) => {
             const connectData: FacebookConnectData = { facebookId: profile.id }

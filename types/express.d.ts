@@ -5,6 +5,10 @@ import "passport"
 declare global {
     namespace Express {
         interface User extends AuthUser {}
+
+        interface Request {
+            oauthUser?: GoogleConnectData | FacebookConnectData
+        }
     }
 }
 

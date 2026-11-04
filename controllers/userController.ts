@@ -10,6 +10,8 @@ const optCookie: any = {
     sameSite: 'Lax',
 }
 
+type OAuthProvider = 'google' | 'facebook'
+
 const userController = {
     signUp: async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -158,28 +160,39 @@ const userController = {
             next(error)
         }
     },
-    oauthConnectCallback: async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            // 'data' here is the profile returned by google/facebook callback
-            // userId is accessed from req.cookies
-            const data = req.user
-            if(await User.findOne({ where: data })) {
-                return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=ACCOUNT_ALREADY_CONNECTED`)
-            }
-
-            const payload = jwt.verify(req.cookies.token, process.env.SECRET!) as { id: number }
-            const userId = payload.id
-            await User.update(
-                data,
-                {
-                    where: {
-                        id: userId
-                    }
+    oauthConnectCallback: (provider: OAuthProvider) => {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                if(req.user === undefined
+                    || req.session.oauthConnect === undefined 
+                    || req.oauthUser === undefined
+                    || req.user.id !== req.session.oauthConnect.userId
+                    || provider !== req.session.oauthConnect.provider
+                ) {
+                    return res.sendStatus(403)
                 }
-            )
-            return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=SUCCESS`)
-        } catch (error) {
-            next(error)
+
+                const data = req.oauthUser
+
+                if(await User.findOne({ where: data })) {
+                    delete req.session.oauthConnect
+                    return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=ACCOUNT_ALREADY_CONNECTED`)
+                }
+
+                const userId = req.user.id
+                await User.update(
+                    data,
+                    {
+                        where: {
+                            id: userId
+                        }
+                    }
+                )
+                delete req.session.oauthConnect
+                return res.redirect(`${process.env.FRONTEND_URL}/oauth/connect/callback?status=SUCCESS`)
+            } catch (error) {
+                next(error)
+            }
         }
     },
     oauthDisconnect: async (req: Request, res: Response, next: NextFunction) => {
@@ -201,7 +214,23 @@ const userController = {
         } catch (error) {
             next(error)
         }
+    },
+    saveConnectInitiator: (provider: OAuthProvider) => {
+        return (req: Request, res: Response, next: NextFunction) => {
+            if(!req.user) {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Unauthorized',
+                })
+            }
+            req.session.oauthConnect = {
+                userId: req.user.id,
+                provider
+            }
+            req.session.save(next)
+        }
     }
+    
 }
 
 export default userController
