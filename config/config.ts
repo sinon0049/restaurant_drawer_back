@@ -1,27 +1,26 @@
 import 'dotenv/config'
 
+const postgresConfig = {
+  username: process.env.PG_USER || 'postgres',
+  password: process.env.PG_PASSWORD || null,
+  host: process.env.PG_HOST || '127.0.0.1',
+  port: Number(process.env.PG_PORT) || 5432,
+  dialect: 'postgres' as const,
+  logging: false,
+}
+
 const config = {
-  "development": {
-    "username": "root",
-    "password": "password",
-    "database": "todo_rest",
-    "host": "127.0.0.1",
-    "dialect": "mysql",
-    "logging": false
+  development: {
+    ...postgresConfig,
+    database: process.env.PG_DATABASE || 'restaurant_drawer',
   },
-  "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+  test: {
+    ...postgresConfig,
+    database: process.env.PG_DATABASE || 'database_test',
   },
-  "production": {
-    "username": process.env.DB_USER,
-    "password": process.env.DB_PASSWORD,
-    "database": process.env.DB_NAME,
-    "host": process.env.DB_HOST,
-    "dialect": "mysql"
+  production: {
+    ...postgresConfig,
+    database: process.env.PG_DATABASE,
   }
 }
 
