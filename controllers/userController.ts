@@ -1,13 +1,15 @@
 import bcrypt from 'bcryptjs'
 import db from '../models/index.js'
 import jwt from 'jsonwebtoken'
-import type { NextFunction, Request, Response } from 'express'
+import type { CookieOptions, NextFunction, Request, Response } from 'express'
 
 const User = db.User
 
-const optCookie: any = {
+const optCookie: CookieOptions = {
     httpOnly: true,
-    sameSite: 'Lax',
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 1000
 }
 
 type OAuthProvider = 'google' | 'facebook'
@@ -55,7 +57,6 @@ const userController = {
             return res.status(200).json({
                 status: 'success',
                 message: 'Sign in successfully',
-                token,
                 user: {
                     id, email, name, facebookId, googleId,
                     isPwdSet: password ? true : false,
@@ -83,9 +84,16 @@ const userController = {
                 raw: true,
                 attributes: ['id', 'email', 'name', 'facebookId', 'googleId', 'password']
             })
+
+            if (!user) {
+                return res.status(404).json({ status: 'error', message: 'User not found' })
+            }
+
+            const { password, ...safeUser } = user
+
             return res.json({
-                ...user,
-                isPwdSet: user.password ? true : false
+                ...safeUser,
+                isPwdSet: Boolean(password)
             })
         } catch (error) {
             next(error)
@@ -154,7 +162,7 @@ const userController = {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET!, { expiresIn: '1h' })
-            res.cookie('token', token)
+            res.cookie('token', token, optCookie)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
             next(error)
