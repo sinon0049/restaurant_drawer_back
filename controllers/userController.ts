@@ -171,6 +171,7 @@ const userController = {
     oauthConnectCallback: (provider: OAuthProvider) => {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
+                // check userId and provider stored in saveConnectInitiator function
                 if(req.user === undefined
                     || req.session.oauthConnect === undefined 
                     || req.oauthUser === undefined
@@ -223,6 +224,7 @@ const userController = {
             next(error)
         }
     },
+    // save userId and oauth provider when oauth-connecting
     saveConnectInitiator: (provider: OAuthProvider) => {
         return (req: Request, res: Response, next: NextFunction) => {
             if(!req.user) {
