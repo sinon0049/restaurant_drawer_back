@@ -50,7 +50,7 @@ const userController = {
         try {
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
-            const token = jwt.sign(payLoad, process.env.SECRET!)
+            const token = jwt.sign(payLoad, process.env.SECRET!, { expiresIn: '1h' })
             res.cookie('token', token, optCookie)
             return res.status(200).json({
                 status: 'success',
@@ -153,7 +153,7 @@ const userController = {
     oauthSigninCallback: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const payLoad = { id: req.user!.id }
-            const token = jwt.sign(payLoad, process.env.SECRET!)
+            const token = jwt.sign(payLoad, process.env.SECRET!, { expiresIn: '1h' })
             res.cookie('token', token)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {

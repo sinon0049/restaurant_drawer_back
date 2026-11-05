@@ -7,11 +7,20 @@ const userModelFactory = (sequelize: Sequelize, DataTypes: typeof Sequelize.Data
     }
   }
   (User as ModelStatic<Model>).init({
-    email: DataTypes.STRING,
     password: DataTypes.STRING,
     name: DataTypes.STRING,
-    facebookId: DataTypes.STRING,
-    googleId: DataTypes.STRING
+    email: {
+      type: DataTypes.STRING,
+      unique: 'users_email_unique',
+    },
+    googleId: {
+      type: DataTypes.STRING,
+      unique: 'users_google_id_unique',
+    },
+    facebookId: {
+      type: DataTypes.STRING,
+      unique: 'users_facebook_id_unique',
+    },
   }, {
     sequelize,
     modelName: 'User',
