@@ -12,7 +12,7 @@ import session from 'express-session'
 
 const app = express()
 const port = process.env.PORT || 3000
-const whiteList = ['https://todorest-715325.web.app', 'https://todorest-715325.firebaseapp.com', 'https://localhost:5173']
+const whiteList = ['https://todorest-715325.web.app', 'https://restaurant-drawer-457aa.web.app', 'https://localhost:5173']
 
 const corsOption: CorsOptions = {
   origin: function (origin, callback) {
