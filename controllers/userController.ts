@@ -7,9 +7,10 @@ const User = db.User
 
 const optCookie: CookieOptions = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 1000
+    maxAge: 60 * 60 * 1000,
+    path: '/'
 }
 
 type OAuthProvider = 'google' | 'facebook'
@@ -68,7 +69,7 @@ const userController = {
     },
     signOut: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('token')
+            res.clearCookie('token', optCookie)
             res.status(200).json({
                 status: 'success',
                 message: 'Sign out successfully'
