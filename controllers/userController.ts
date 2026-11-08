@@ -8,7 +8,7 @@ const User = db.User
 const optCookie: CookieOptions = {
     httpOnly: true,
     sameSite: "none",
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     maxAge: 60 * 60 * 1000,
     path: '/'
 }
