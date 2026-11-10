@@ -2,11 +2,12 @@
   "name": "todo_rest_back",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec npx tsx app.ts",
-    "start": "node app.js"
+    "start": "node dist/app.js",
+    "build": "npx tsc"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.17.3",
+    "express-rate-limit": "^8.7.3",
     "express-session": "^1.19.0",
     "google-auth-library": "^8.7.0",
     "jsonwebtoken": "^8.5.1",

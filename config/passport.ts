@@ -53,7 +53,8 @@ const usePassport = (app: Express) => {
     passport.use('google-signin', new GoogleStrategy({
             clientID: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`
+            callbackURL: `${process.env.BACKEND_URL}/users/google/signin/callback`,
+            state: true
         },
         async (accessToken: string, refreshToken: string, profile: any, done) => {
             try {
@@ -90,7 +91,8 @@ const usePassport = (app: Express) => {
             clientID: process.env.FACEBOOK_CLIENT_ID!,
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
             callbackURL: `${process.env.BACKEND_URL}/users/facebook/signin/callback`,
-            profileFields: ["id", "displayName", "email"]
+            profileFields: ["id", "displayName", "email"],
+            state: true
         },
         async (accessToken: string, refreshToken: string, profile: any, done) => {
             try {

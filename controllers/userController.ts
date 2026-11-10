@@ -7,9 +7,10 @@ const User = db.User
 
 const optCookie: CookieOptions = {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 1000
+    sameSite: "none",
+    secure: true,
+    maxAge: 60 * 60 * 1000,
+    path: '/'
 }
 
 type OAuthProvider = 'google' | 'facebook'
@@ -68,7 +69,7 @@ const userController = {
     },
     signOut: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('token')
+            res.clearCookie('token', optCookie)
             res.status(200).json({
                 status: 'success',
                 message: 'Sign out successfully'
@@ -171,6 +172,7 @@ const userController = {
     oauthConnectCallback: (provider: OAuthProvider) => {
         return async (req: Request, res: Response, next: NextFunction) => {
             try {
+                // check userId and provider stored in saveConnectInitiator function
                 if(req.user === undefined
                     || req.session.oauthConnect === undefined 
                     || req.oauthUser === undefined
@@ -223,6 +225,7 @@ const userController = {
             next(error)
         }
     },
+    // save userId and oauth provider when oauth-connecting
     saveConnectInitiator: (provider: OAuthProvider) => {
         return (req: Request, res: Response, next: NextFunction) => {
             if(!req.user) {
