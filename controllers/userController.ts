@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import db from '../models/index.js'
 import jwt from 'jsonwebtoken'
 import type { CookieOptions, NextFunction, Request, Response } from 'express'
+import crypto from 'node:crypto'
 
 const User = db.User
 
@@ -240,6 +241,15 @@ const userController = {
             }
             req.session.save(next)
         }
+    },
+    getCsrfToken: (req: Request, res: Response) => {
+        if(!req.session.csrfToken) {
+            req.session.csrfToken = crypto.randomBytes(32).toString('hex')
+        }
+
+        return res.json({
+            csrfToken: req.session.csrfToken
+        })
     }
     
 }
