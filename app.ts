@@ -31,6 +31,7 @@ app.use(
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
+    name: 'csrf.sid',
     cookie: {
       httpOnly: true,
       secure: true,

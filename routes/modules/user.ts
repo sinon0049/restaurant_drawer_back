@@ -2,13 +2,15 @@ import express from 'express'
 import passport from 'passport'
 import userController from '../../controllers/userController.js'
 import authenticateToken from '../../middleware/authenticateToken.js'
+import verifyCsrfToken from '../../middleware/verifyCsrfToken.js'
 
 const router = express.Router()
 
 // password signup/signin
-router.post('/signup', userController.signUp)
+router.post('/signup', verifyCsrfToken, userController.signUp)
 router.post(
     '/signin',
+    verifyCsrfToken,
     passport.authenticate('local', {
         session: false 
     }), 
@@ -89,12 +91,13 @@ router.get(
 )
 
 // Disconnect account
-router.post('/oauth/disconnect', authenticateToken, userController.oauthDisconnect)
+router.post('/oauth/disconnect', verifyCsrfToken, authenticateToken, userController.oauthDisconnect)
 
-router.post('/signout', userController.signOut)
+router.post('/signout', verifyCsrfToken, userController.signOut)
 
+router.get('/csrf_token', userController.getCsrfToken)
 router.get('/current_user', authenticateToken, userController.getCurrentUser)
-router.put('/profile', authenticateToken, userController.updateProfile)
-router.put('/password', authenticateToken, userController.updatePassword)
+router.put('/profile', verifyCsrfToken, authenticateToken, userController.updateProfile)
+router.put('/password', verifyCsrfToken, authenticateToken, userController.updatePassword)
 
 export default router

@@ -6,5 +6,7 @@ declare module 'express-session' {
             userId: number;
             provider: 'google' | 'facebook'
         }
+
+        csrfToken?: string
     }
 }

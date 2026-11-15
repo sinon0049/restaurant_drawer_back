@@ -20,7 +20,7 @@ interface JwtPayLoad {
 
 let jwtOptions = {
     jwtFromRequest: (req: Request) => {
-        return req.cookies.token || null
+        return req.cookies.accessToken || null
      },
     secretOrKey: process.env.SECRET!,
 }

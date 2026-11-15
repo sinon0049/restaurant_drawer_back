@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import db from '../models/index.js'
 import jwt from 'jsonwebtoken'
 import type { CookieOptions, NextFunction, Request, Response } from 'express'
+import { generateCsrfToken } from '../utils/generateCsrftoken.js'
 
 const User = db.User
 
@@ -54,14 +55,19 @@ const userController = {
             const { id, email, name, facebookId, googleId, password } = req.user!
             const payLoad = { id }
             const token = jwt.sign(payLoad, process.env.SECRET!, { expiresIn: '1h' })
-            res.cookie('token', token, optCookie)
-            return res.status(200).json({
-                status: 'success',
-                message: 'Sign in successfully',
-                user: {
-                    id, email, name, facebookId, googleId,
-                    isPwdSet: password ? true : false,
-                }
+            req.session.regenerate((err) => {
+                if(err) return next(err)
+                req.session.csrfToken = generateCsrfToken()
+                res.cookie('accessToken', token, optCookie)
+                return res.status(200).json({
+                    status: 'success',
+                    message: 'Sign in successfully',
+                    user: {
+                        id, email, name, facebookId, googleId,
+                        isPwdSet: password ? true : false,
+                    },
+                    csrfToken: req.session.csrfToken
+                })
             })
         } catch (error) {
             next(error)
@@ -69,11 +75,16 @@ const userController = {
     },
     signOut: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            res.clearCookie('token', optCookie)
-            res.status(200).json({
-                status: 'success',
-                message: 'Sign out successfully'
-            })
+            req.session.regenerate((err) => {
+                if(err) return next(err)
+                req.session.csrfToken = generateCsrfToken()
+                res.clearCookie('accessToken', optCookie)
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Sign out successfully',
+                    csrfToken: req.session.csrfToken
+                })
+            }) 
         } catch (error) {
             next(error)
         }
@@ -163,7 +174,7 @@ const userController = {
         try {
             const payLoad = { id: req.user!.id }
             const token = jwt.sign(payLoad, process.env.SECRET!, { expiresIn: '1h' })
-            res.cookie('token', token, optCookie)
+            res.cookie('accessToken', token, optCookie)
             return res.redirect(`${process.env.FRONTEND_URL}/oauth/signin/callback`)
         } catch (error) {
             next(error)
@@ -240,8 +251,16 @@ const userController = {
             }
             req.session.save(next)
         }
+    },
+    getCsrfToken: (req: Request, res: Response) => {
+        if(!req.session.csrfToken) {
+            req.session.csrfToken = generateCsrfToken()
+        }
+
+        return res.json({
+            csrfToken: req.session.csrfToken
+        })
     }
-    
 }
 
 export default userController
