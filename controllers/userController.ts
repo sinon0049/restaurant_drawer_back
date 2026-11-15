@@ -114,6 +114,17 @@ const userController = {
     updateProfile: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.user!
+            if(req.body.email) {
+                const existingUser = await User.findOne({ where: { email: req.body.email }})
+
+                if(existingUser) {
+                    return res.status(409).json({
+                        status: 'error',
+                        message: 'Email already used'
+                    })
+                }
+            }
+
             await User.update(
                 req.body,
                 {
