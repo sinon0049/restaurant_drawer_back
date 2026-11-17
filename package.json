@@ -15,6 +15,7 @@
   "dependencies": {
     "@googlemaps/places": "^3.0.0",
     "bcryptjs": "^3.0.3",
+    "connect-redis": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -30,6 +31,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.23.1",
     "pg-hstore": "^2.3.4",
+    "redis": "^6.3.1",
     "sequelize": "^6.17.0",
     "sequelize-cli": "^6.4.1"
   },
