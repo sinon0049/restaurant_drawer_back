@@ -9,6 +9,7 @@ import errorHandler from './middleware/errorHandler.js'
 import 'dotenv/config'
 import type { CorsOptions } from 'cors'
 import session from 'express-session'
+import { redisStore } from './utils/redis.js'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -37,7 +38,8 @@ app.use(
       secure: true,
       sameSite: 'none',
       maxAge: 15 * 60 * 1000
-    }
+    },
+    store: redisStore
   })
 )
 app.use(cookieParser())
