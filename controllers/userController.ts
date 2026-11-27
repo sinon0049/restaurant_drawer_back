@@ -3,6 +3,7 @@ import db from '../models/index.js'
 import jwt from 'jsonwebtoken'
 import type { CookieOptions, NextFunction, Request, Response } from 'express'
 import { generateCsrfToken } from '../utils/generateCsrftoken.js'
+import { Op } from 'sequelize'
 
 const User = db.User
 
@@ -115,7 +116,12 @@ const userController = {
         try {
             const { id } = req.user!
             if(req.body.email) {
-                const existingUser = await User.findOne({ where: { email: req.body.email }})
+                const existingUser = await User.findOne({ 
+                    where: { 
+                        email: req.body.email,
+                        id: { [Op.ne]: id } 
+                    }
+                })
 
                 if(existingUser) {
                     return res.status(409).json({
