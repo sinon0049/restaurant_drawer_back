@@ -3,14 +3,17 @@ import passport from 'passport'
 import userController from '../../controllers/userController.js'
 import authenticateToken from '../../middleware/authenticateToken.js'
 import verifyCsrfToken from '../../middleware/verifyCsrfToken.js'
+import { UpdatePasswordDataSchema, UpdateProfileDataSchema, SignInSchema, SignUpSchema } from '../../utils/zodSchema.js'
+import { validateRequestBody } from '../../middleware/verifyInputSchema.js'
 
 const router = express.Router()
 
 // password signup/signin
-router.post('/signup', verifyCsrfToken, userController.signUp)
+router.post('/signup', verifyCsrfToken, validateRequestBody(SignUpSchema), userController.signUp)
 router.post(
     '/signin',
     verifyCsrfToken,
+    validateRequestBody(SignInSchema),
     passport.authenticate('local', {
         session: false 
     }), 
@@ -97,7 +100,7 @@ router.post('/signout', verifyCsrfToken, userController.signOut)
 
 router.get('/csrf_token', userController.getCsrfToken)
 router.get('/current_user', authenticateToken, userController.getCurrentUser)
-router.put('/profile', verifyCsrfToken, authenticateToken, userController.updateProfile)
-router.put('/password', verifyCsrfToken, authenticateToken, userController.updatePassword)
+router.put('/profile', verifyCsrfToken, authenticateToken, validateRequestBody(UpdateProfileDataSchema), userController.updateProfile)
+router.put('/password', verifyCsrfToken, authenticateToken, validateRequestBody(UpdatePasswordDataSchema), userController.updatePassword)
 
 export default router
